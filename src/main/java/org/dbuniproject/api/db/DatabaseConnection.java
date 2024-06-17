@@ -1,6 +1,7 @@
 package org.dbuniproject.api.db;
 
 import org.dbuniproject.api.Api;
+import org.dbuniproject.api.db.structures.Region;
 
 import java.sql.*;
 import java.util.ArrayList;

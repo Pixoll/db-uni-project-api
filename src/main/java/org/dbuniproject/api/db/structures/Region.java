@@ -1,4 +1,4 @@
-package org.dbuniproject.api.db;
+package org.dbuniproject.api.db.structures;
 
 import jakarta.annotation.Nonnull;
 import org.jetbrains.annotations.NotNull;

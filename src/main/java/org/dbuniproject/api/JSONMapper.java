@@ -2,7 +2,7 @@ package org.dbuniproject.api;
 
 import io.javalin.http.HttpStatus;
 import io.javalin.json.JsonMapper;
-import org.dbuniproject.api.db.Structure;
+import org.dbuniproject.api.db.structures.Structure;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
