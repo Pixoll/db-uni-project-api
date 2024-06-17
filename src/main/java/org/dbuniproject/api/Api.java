@@ -15,7 +15,8 @@ public class Api {
                     config.router.contextPath = "/api/v1";
                     config.router.ignoreTrailingSlashes = true;
                     config.router.apiBuilder(() -> registerEndpoints(
-                            new PingEndpoint()
+                            new PingEndpoint(),
+                            new RegionsEndpoint()
                     ));
                     config.jsonMapper(new JSONMapper());
                 })
