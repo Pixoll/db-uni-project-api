@@ -10,7 +10,7 @@ public class Product extends Structure {
     @Nonnull
     public String description;
     public int color;
-    public int priceWithoutTax;
+    public int price;
     public boolean deleted;
     public int typeId;
     public int sizeId;
@@ -21,7 +21,7 @@ public class Product extends Structure {
             @Nonnull String name,
             @Nonnull String description,
             int color,
-            int priceWithoutTax,
+            int price,
             boolean deleted,
             int typeId,
             int sizeId,
@@ -31,7 +31,7 @@ public class Product extends Structure {
         this.name = name;
         this.description = description;
         this.color = color;
-        this.priceWithoutTax = priceWithoutTax;
+        this.price = price;
         this.deleted = deleted;
         this.typeId = typeId;
         this.sizeId = sizeId;
@@ -46,7 +46,7 @@ public class Product extends Structure {
                 .put("name", this.name)
                 .put("description", this.description)
                 .put("color", this.color)
-                .put("priceWithoutTax", this.priceWithoutTax)
+                .put("price", this.price)
                 .put("deleted", this.deleted)
                 .put("typeId", this.typeId)
                 .put("sizeId", this.sizeId)
@@ -61,7 +61,7 @@ public class Product extends Structure {
                 this.name,
                 this.description,
                 this.color,
-                this.priceWithoutTax,
+                this.price,
                 this.deleted,
                 this.typeId,
                 this.sizeId,

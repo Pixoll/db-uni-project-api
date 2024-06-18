@@ -7,9 +7,12 @@ import org.dbuniproject.api.db.structures.Brand;
 import org.dbuniproject.api.db.structures.ProductSize;
 import org.dbuniproject.api.db.structures.ProductType;
 import org.dbuniproject.api.db.structures.Region;
+import org.json.JSONObject;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DatabaseConnection implements AutoCloseable {
     private static final String POSTGRES_DB_URL = Api.DOTENV.get("POSTGRES_DB_URL");
@@ -81,8 +84,10 @@ public class DatabaseConnection implements AutoCloseable {
 
     @Nullable
     public ProductSize getProductSize(@Nonnull String name) throws SQLException {
-        final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.talla WHERE nombre = ?");
-        query.setString(1, name);
+        final PreparedStatement query = connection.prepareStatement(
+                "SELECT * FROM project.talla WHERE nombre ILIKE '%' || ? || '%'"
+        );
+        query.setString(1, name.toLowerCase());
 
         final ResultSet result = query.executeQuery();
 
@@ -131,8 +136,10 @@ public class DatabaseConnection implements AutoCloseable {
 
     @Nullable
     public ProductType getProductType(@Nonnull String name) throws SQLException {
-        final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.tipo WHERE nombre = ?");
-        query.setString(1, name);
+        final PreparedStatement query = connection.prepareStatement(
+                "SELECT * FROM project.tipo WHERE ? LIKE nombre ILIKE '%' || ? || '%'"
+        );
+        query.setString(1, name.toLowerCase());
 
         final ResultSet result = query.executeQuery();
 
@@ -183,7 +190,9 @@ public class DatabaseConnection implements AutoCloseable {
 
     @Nullable
     public Brand getBrand(@Nonnull String name) throws SQLException {
-        final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.marca WHERE nombre = ?");
+        final PreparedStatement query = connection.prepareStatement(
+                "SELECT * FROM project.marca WHERE ? LIKE nombre ILIKE '%' || ? || '%'"
+        );
         query.setString(1, name);
 
         final ResultSet result = query.executeQuery();
@@ -199,6 +208,150 @@ public class DatabaseConnection implements AutoCloseable {
         query.setString(1, name);
 
         query.executeUpdate();
+    }
+
+    public ArrayList<JSONObject> getProducts(
+            @Nullable String name,
+            List<Integer> types,
+            List<Integer> sizes,
+            List<Integer> brands,
+            List<Integer> colors,
+            List<Integer> regions,
+            List<Integer> communes,
+            @Nullable Integer minPrice,
+            @Nullable Integer maxPrice,
+            boolean sortByName,
+            boolean sortByPrice
+    ) throws SQLException {
+        final boolean typesFilter = types != null && !types.isEmpty();
+        final boolean sizesFilter = sizes != null && !sizes.isEmpty();
+        final boolean brandsFilter = brands != null && !brands.isEmpty();
+        final boolean colorsFilter = colors != null && !colors.isEmpty();
+        final boolean regionsFilter = regions != null && !regions.isEmpty();
+        final boolean communesFilter = communes != null && !communes.isEmpty();
+
+        final AtomicInteger argumentCounter = new AtomicInteger(1);
+        int nameArgPosition = -1;
+        int minPriceArgPosition = -1;
+        int maxPriceArgPosition = -1;
+        int typesArgPosition = -1;
+        int sizesArgPosition = -1;
+        int brandsArgPosition = -1;
+        int colorsArgPosition = -1;
+        int communesArgPosition = -1;
+        int regionsArgPosition = -1;
+
+        @SuppressWarnings("SqlShouldBeInGroupBy")
+        String sql = """
+                SELECT
+                    P.sku,
+                    P.nombre AS name,
+                    M.nombre AS brand,
+                    P.color,
+                    project.aplicar_iva(P.precio_sin_iva) AS price,
+                    SUM(ST.actual + ST.bodega) > 0 AS available
+                    FROM project.Producto AS P
+                    INNER JOIN project.Stock AS ST ON ST.sku_producto = P.sku
+                    INNER JOIN project.Marca AS M ON M.id = P.id_marca""";
+
+        if (communesFilter || regionsFilter) {
+            sql += " INNER JOIN project.Sucursal AS SU ON SU.id = ST.id_sucursal";
+            sql += " INNER JOIN project.Comuna as C ON C.id = SU.id_comuna";
+        }
+
+        if (regionsFilter) {
+            sql += " INNER JOIN project.Region as R ON R.numero = C.region";
+        }
+
+        sql += " WHERE P.eliminado = FALSE";
+
+        if (name != null && !name.isEmpty()) {
+            sql += " AND P.nombre ILIKE '%' || ? || '%'";
+            nameArgPosition = argumentCounter.getAndIncrement();
+        }
+        if (minPrice != null) {
+            sql += " AND project.aplicar_iva(P.precio_sin_iva) >= ?";
+            minPriceArgPosition = argumentCounter.getAndIncrement();
+        }
+        if (maxPrice != null) {
+            sql += " AND project.aplicar_iva(P.precio_sin_iva) >= ?";
+            maxPriceArgPosition = argumentCounter.getAndIncrement();
+        }
+        if (typesFilter) {
+            sql += " AND P.id_tipo = ANY (?)";
+            typesArgPosition = argumentCounter.getAndIncrement();
+        }
+        if (sizesFilter) {
+            sql += " AND P.id_talla = ANY (?)";
+            sizesArgPosition = argumentCounter.getAndIncrement();
+        }
+        if (brandsFilter) {
+            sql += " AND P.id_marca = ANY (?)";
+            brandsArgPosition = argumentCounter.getAndIncrement();
+        }
+        if (colorsFilter) {
+            sql += " AND P.color = ANY (?)";
+            colorsArgPosition = argumentCounter.getAndIncrement();
+        }
+        if (communesFilter) {
+            sql += " AND C.id = ANY (?)";
+            communesArgPosition = argumentCounter.getAndIncrement();
+        }
+        if (regionsFilter) {
+            sql += " AND R.numero = ANY (?)";
+            regionsArgPosition = argumentCounter.getAndIncrement();
+        }
+
+        sql += " GROUP BY P.sku, P.nombre, M.nombre, P.color, P.precio_sin_iva";
+
+        if (sortByName || sortByPrice) {
+            final ArrayList<String> sorts = new ArrayList<>();
+            if (sortByName) sorts.add("P.nombre");
+            if (sortByPrice) sorts.add("P.precio_sin_iva");
+
+            sql += " ORDER BY " + String.join(", ", sorts);
+        }
+
+        final PreparedStatement query = connection.prepareStatement(sql);
+
+        if (nameArgPosition != -1) query.setString(nameArgPosition, name.toLowerCase());
+        if (minPriceArgPosition != -1) query.setInt(minPriceArgPosition, minPrice);
+        if (maxPriceArgPosition != -1) query.setInt(maxPriceArgPosition, maxPrice);
+        if (typesArgPosition != -1) {
+            query.setArray(typesArgPosition, this.connection.createArrayOf("INT", types.toArray()));
+        }
+        if (sizesArgPosition != -1) {
+            query.setArray(sizesArgPosition, this.connection.createArrayOf("INT", sizes.toArray()));
+        }
+        if (brandsArgPosition != -1) {
+            query.setArray(brandsArgPosition, this.connection.createArrayOf("INT", brands.toArray()));
+        }
+        if (colorsArgPosition != -1) {
+            query.setArray(colorsArgPosition, this.connection.createArrayOf("INT", colors.toArray()));
+        }
+        if (communesArgPosition != -1) {
+            query.setArray(communesArgPosition, this.connection.createArrayOf("INT", communes.toArray()));
+        }
+        if (regionsArgPosition != -1) {
+            query.setArray(regionsArgPosition, this.connection.createArrayOf("INT", regions.toArray()));
+        }
+
+        final ResultSet result = query.executeQuery();
+
+        final ArrayList<JSONObject> products = new ArrayList<>();
+
+        while (result.next()) {
+            products.add(new JSONObject()
+                    .put("sku", result.getLong("sku"))
+                    .put("name", result.getString("name"))
+                    .put("brand", result.getString("brand"))
+                    .put("color", result.getString("color"))
+                    .put("price", result.getInt("price"))
+                    .put("available", result.getBoolean("available"))
+            );
+        }
+
+        return products;
     }
 
     @Override

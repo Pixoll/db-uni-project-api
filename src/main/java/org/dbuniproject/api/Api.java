@@ -17,6 +17,7 @@ public class Api {
                     config.router.apiBuilder(() -> registerEndpoints(
                             new BrandsEndpoint(),
                             new PingEndpoint(),
+                            new ProductsEndpoint(),
                             new ProductsSizesEndpoint(),
                             new ProductsTypesEndpoint(),
                             new RegionsEndpoint()
