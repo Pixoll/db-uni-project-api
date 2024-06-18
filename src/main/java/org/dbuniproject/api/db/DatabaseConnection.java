@@ -349,7 +349,7 @@ public class DatabaseConnection implements AutoCloseable {
                     .put("sku", result.getLong("sku"))
                     .put("name", result.getString("name"))
                     .put("brand", result.getString("brand"))
-                    .put("color", result.getString("color"))
+                    .put("color", result.getInt("color"))
                     .put("price", result.getInt("price"))
                     .put("available", result.getBoolean("available"))
             );
