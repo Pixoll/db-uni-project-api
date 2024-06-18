@@ -1,6 +1,9 @@
 package org.dbuniproject.api.db;
 
 import org.dbuniproject.api.Api;
+import org.dbuniproject.api.db.structures.Brand;
+import org.dbuniproject.api.db.structures.ProductSize;
+import org.dbuniproject.api.db.structures.ProductType;
 import org.dbuniproject.api.db.structures.Region;
 
 import java.sql.Connection;
@@ -48,6 +51,52 @@ public class DatabaseConnection implements AutoCloseable {
         }
 
         return regions;
+    }
+
+    public ArrayList<ProductSize> getProductSizes() throws SQLException {
+        final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.talla");
+
+        final ArrayList<ProductSize> productSizes = new ArrayList<>();
+
+        while (result.next()) {
+            final int id = result.getInt("id");
+            final String name = result.getString("nombre");
+
+            productSizes.add(new ProductSize(id, name));
+        }
+
+        return productSizes;
+    }
+
+    public ArrayList<ProductType> getProductTypes() throws SQLException {
+        final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.tipo");
+
+        final ArrayList<ProductType> productTypes = new ArrayList<>();
+
+        while (result.next()) {
+            final int id = result.getInt("id");
+            final String name = result.getString("nombre");
+            final String description = result.getString("descripcion");
+
+            productTypes.add(new ProductType(id, name, description));
+        }
+
+        return productTypes;
+    }
+
+    public ArrayList<Brand> getBrands() throws SQLException {
+        final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.marca");
+
+        final ArrayList<Brand> brands = new ArrayList<>();
+
+        while (result.next()) {
+            final int id = result.getInt("id");
+            final String name = result.getString("nombre");
+
+            brands.add(new Brand(id, name));
+        }
+
+        return brands;
     }
 
     @Override
