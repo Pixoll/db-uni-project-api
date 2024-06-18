@@ -1,15 +1,14 @@
 package org.dbuniproject.api.db;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import org.dbuniproject.api.Api;
 import org.dbuniproject.api.db.structures.Brand;
 import org.dbuniproject.api.db.structures.ProductSize;
 import org.dbuniproject.api.db.structures.ProductType;
 import org.dbuniproject.api.db.structures.Region;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 
 public class DatabaseConnection implements AutoCloseable {
@@ -68,6 +67,31 @@ public class DatabaseConnection implements AutoCloseable {
         return productSizes;
     }
 
+    @Nullable
+    public ProductSize getProductSize(int id) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.talla WHERE id = ?");
+        query.setInt(1, id);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next()
+                ? new ProductSize(result.getInt("id"), result.getString("nombre"))
+                : null;
+    }
+
+    @Nullable
+    public ProductSize getProductSize(String name) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.talla WHERE nombre = ?");
+        query.setString(1, name);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new ProductSize(
+                result.getInt("id"),
+                result.getString("nombre")
+        ) : null;
+    }
+
     public ArrayList<ProductType> getProductTypes() throws SQLException {
         final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.tipo");
 
@@ -84,6 +108,34 @@ public class DatabaseConnection implements AutoCloseable {
         return productTypes;
     }
 
+    @Nullable
+    public ProductType getProductType(int id) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.tipo WHERE id = ?");
+        query.setInt(1, id);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new ProductType(
+                result.getInt("id"),
+                result.getString("nombre"),
+                result.getString("descripcion")
+        ) : null;
+    }
+
+    @Nullable
+    public ProductType getProductType(String name) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.tipo WHERE nombre = ?");
+        query.setString(1, name);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new ProductType(
+                result.getInt("id"),
+                result.getString("nombre"),
+                result.getString("descripcion")
+        ) : null;
+    }
+
     public ArrayList<Brand> getBrands() throws SQLException {
         final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.marca");
 
@@ -97,6 +149,32 @@ public class DatabaseConnection implements AutoCloseable {
         }
 
         return brands;
+    }
+
+    @Nullable
+    public Brand getBrand(int id) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.marca WHERE id = ?");
+        query.setInt(1, id);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new Brand(
+                result.getInt("id"),
+                result.getString("nombre")
+        ) : null;
+    }
+
+    @Nullable
+    public Brand getBrand(String name) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.marca WHERE nombre = ?");
+        query.setString(1, name);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new Brand(
+                result.getInt("id"),
+                result.getString("nombre")
+        ) : null;
     }
 
     @Override
