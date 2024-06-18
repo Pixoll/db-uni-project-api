@@ -14,6 +14,9 @@ public class Api {
         Javalin.create(config -> {
                     config.router.contextPath = "/api/v1";
                     config.router.ignoreTrailingSlashes = true;
+                    config.bundledPlugins.enableCors(cors ->
+                            cors.addRule(CorsPluginConfig.CorsRule::anyHost)
+                    );
                     config.router.apiBuilder(() -> registerEndpoints(
                             new BrandsEndpoint(),
                             new PingEndpoint(),
