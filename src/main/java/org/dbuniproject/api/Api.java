@@ -5,10 +5,7 @@ import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
-import org.dbuniproject.api.endpoints.Endpoint;
-import org.dbuniproject.api.endpoints.EndpointException;
-import org.dbuniproject.api.endpoints.PingEndpoint;
-import org.dbuniproject.api.endpoints.RegionsEndpoint;
+import org.dbuniproject.api.endpoints.*;
 
 public class Api {
     public static final Dotenv DOTENV = Dotenv.load();
@@ -18,7 +15,10 @@ public class Api {
                     config.router.contextPath = "/api/v1";
                     config.router.ignoreTrailingSlashes = true;
                     config.router.apiBuilder(() -> registerEndpoints(
+                            new BrandsEndpoint(),
                             new PingEndpoint(),
+                            new ProductsSizesEndpoint(),
+                            new ProductsTypesEndpoint(),
                             new RegionsEndpoint()
                     ));
                     config.jsonMapper(new JSONMapper());
