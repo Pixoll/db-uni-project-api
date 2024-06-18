@@ -5,6 +5,7 @@ import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
+import io.javalin.plugin.bundled.CorsPluginConfig;
 import org.dbuniproject.api.endpoints.*;
 
 public class Api {
