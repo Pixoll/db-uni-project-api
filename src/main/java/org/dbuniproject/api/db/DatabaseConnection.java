@@ -391,11 +391,14 @@ public class DatabaseConnection implements AutoCloseable {
     }
 
     public boolean doesProductExist(long sku) throws SQLException {
-        final ResultSet result = this.connection.createStatement().executeQuery(
-                "SELECT COUNT(*) = 1 FROM project.producto WHERE sku = ?"
+        final PreparedStatement query = this.connection.prepareStatement(
+                "SELECT 1 FROM project.producto WHERE sku = ?"
         );
+        query.setLong(1, sku);
 
-        return result.next() && result.getBoolean(0);
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
     }
 
     public ArrayList<JSONObject> getProductStocks(long sku) throws SQLException {
