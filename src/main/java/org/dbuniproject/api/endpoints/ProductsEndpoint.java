@@ -7,7 +7,6 @@ import org.dbuniproject.api.db.DatabaseConnection;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 
 public class ProductsEndpoint extends Endpoint implements Endpoint.GetMethod {
@@ -39,11 +38,19 @@ public class ProductsEndpoint extends Endpoint implements Endpoint.GetMethod {
         final List<Integer> brands = Util.getQueryParamAsIntegerList(ctx, "brand");
         final List<Integer> regions = Util.getQueryParamAsIntegerList(ctx, "region");
         final List<Integer> communes = Util.getQueryParamAsIntegerList(ctx, "commune");
-        final List<String> sortBy = ctx.queryParams("sortBy").stream()
-                .flatMap(s -> Arrays.stream(s.split(",")))
-                .toList();
         final Integer minPrice = Util.getQueryParam(ctx, "minPrice", Integer.class);
         final Integer maxPrice = Util.getQueryParam(ctx, "maxPrice", Integer.class);
+        final String sortByNameString = ctx.queryParam("sortByName");
+        final String sortByPriceString = ctx.queryParam("sortByPrice");
+
+        final Boolean sortByName = sortByNameString == null ? null
+                : sortByNameString.equalsIgnoreCase("asc") ? Boolean.TRUE
+                : sortByNameString.equalsIgnoreCase("desc") ? Boolean.FALSE
+                : null;
+        final Boolean sortByPrice = sortByPriceString == null ? null
+                : sortByPriceString.equalsIgnoreCase("asc") ? Boolean.TRUE
+                : sortByPriceString.equalsIgnoreCase("desc") ? Boolean.FALSE
+                : null;
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
             ctx.status(HttpStatus.OK).json(db.getProducts(
@@ -56,8 +63,8 @@ public class ProductsEndpoint extends Endpoint implements Endpoint.GetMethod {
                     communes,
                     minPrice,
                     maxPrice,
-                    sortBy.contains("name"),
-                    sortBy.contains("price")
+                    sortByName,
+                    sortByPrice
             ));
         } catch (SQLException e) {
             throw new RuntimeException(e);

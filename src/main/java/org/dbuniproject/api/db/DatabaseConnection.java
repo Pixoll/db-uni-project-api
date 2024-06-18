@@ -220,8 +220,8 @@ public class DatabaseConnection implements AutoCloseable {
             List<Integer> communes,
             @Nullable Integer minPrice,
             @Nullable Integer maxPrice,
-            boolean sortByName,
-            boolean sortByPrice
+            @Nullable Boolean sortByNameAsc,
+            @Nullable Boolean sortByPriceAsc
     ) throws SQLException {
         final boolean typesFilter = types != null && !types.isEmpty();
         final boolean sizesFilter = sizes != null && !sizes.isEmpty();
@@ -304,10 +304,10 @@ public class DatabaseConnection implements AutoCloseable {
 
         sql += " GROUP BY P.sku, P.nombre, M.nombre, P.color, P.precio_sin_iva";
 
-        if (sortByName || sortByPrice) {
+        if (sortByNameAsc != null || sortByPriceAsc != null) {
             final ArrayList<String> sorts = new ArrayList<>();
-            if (sortByName) sorts.add("P.nombre");
-            if (sortByPrice) sorts.add("P.precio_sin_iva");
+            if (sortByNameAsc != null) sorts.add("P.nombre " + (sortByNameAsc ? "ASC" : "DESC"));
+            if (sortByPriceAsc != null) sorts.add("P.precio_sin_iva " + (sortByPriceAsc ? "ASC" : "DESC"));
 
             sql += " ORDER BY " + String.join(", ", sorts);
         }
