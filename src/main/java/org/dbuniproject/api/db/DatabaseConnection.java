@@ -390,7 +390,38 @@ public class DatabaseConnection implements AutoCloseable {
                 : null;
     }
 
-//    public ArrayList<JSONObject>
+    public boolean doesProductExist(long sku) throws SQLException {
+        final ResultSet result = this.connection.createStatement().executeQuery(
+                "SELECT COUNT(*) = 1 FROM project.producto WHERE sku = ?"
+        );
+
+        return result.next() && result.getBoolean(0);
+    }
+
+    public ArrayList<JSONObject> getProductStocks(long sku) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT
+                    SU.nombre AS storeName,
+                    ST.actual + ST.bodega AS stock
+                    FROM project.stock AS ST
+                    INNER JOIN project.sucursal AS SU ON SU.id = ST.id_sucursal
+                    WHERE ST.sku_producto = ?"""
+        );
+        query.setLong(1, sku);
+
+        final ResultSet result = query.executeQuery();
+
+        final ArrayList<JSONObject> stocks = new ArrayList<>();
+
+        while (result.next()) {
+            stocks.add(new JSONObject()
+                    .put("storeName", result.getString("storeName"))
+                    .put("stock", result.getInt("stock"))
+            );
+        }
+
+        return stocks;
+    }
 
     @Override
     public void close() throws SQLException {

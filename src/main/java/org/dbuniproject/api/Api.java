@@ -19,6 +19,7 @@ public class Api {
                             new PingEndpoint(),
                             new ProductsEndpoint(),
                             new ProductsSizesEndpoint(),
+                            new ProductsStocksEndpoint(),
                             new ProductsTypesEndpoint(),
                             new RegionsEndpoint()
                     ));
