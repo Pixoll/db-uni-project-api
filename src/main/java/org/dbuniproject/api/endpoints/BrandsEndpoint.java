@@ -4,7 +4,6 @@ import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.validation.Validator;
 import org.dbuniproject.api.db.DatabaseConnection;
-import org.dbuniproject.api.db.structures.Brand;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
@@ -21,7 +20,7 @@ public class BrandsEndpoint extends Endpoint implements Endpoint.GetMethod, Endp
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
             if (id.hasValue()) {
-                final Brand brand = db.getBrand(id.get());
+                final JSONObject brand = db.getBrand(id.get());
                 if (brand == null) {
                     throw new EndpointException(HttpStatus.NOT_FOUND, "Brand does not exist.");
                 }
@@ -31,7 +30,7 @@ public class BrandsEndpoint extends Endpoint implements Endpoint.GetMethod, Endp
             }
 
             if (name != null && !name.isEmpty()) {
-                final Brand brand = db.getBrand(name);
+                final JSONObject brand = db.getBrand(name);
                 if (brand == null) {
                     throw new EndpointException(HttpStatus.NOT_FOUND, "Brand does not exist.");
                 }

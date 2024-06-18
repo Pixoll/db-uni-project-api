@@ -4,7 +4,6 @@ import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.validation.Validator;
 import org.dbuniproject.api.db.DatabaseConnection;
-import org.dbuniproject.api.db.structures.ProductType;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
@@ -21,7 +20,7 @@ public class ProductsTypesEndpoint extends Endpoint implements Endpoint.GetMetho
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
             if (id.hasValue()) {
-                final ProductType type = db.getProductType(id.get());
+                final JSONObject type = db.getProductType(id.get());
                 if (type == null) {
                     throw new EndpointException(HttpStatus.NOT_FOUND, "Product type does not exist.");
                 }
@@ -31,7 +30,7 @@ public class ProductsTypesEndpoint extends Endpoint implements Endpoint.GetMetho
             }
 
             if (name != null && !name.isEmpty()) {
-                final ProductType type = db.getProductType(name);
+                final JSONObject type = db.getProductType(name);
                 if (type == null) {
                     throw new EndpointException(HttpStatus.NOT_FOUND, "Product type does not exist.");
                 }

@@ -3,9 +3,6 @@ package org.dbuniproject.api.db;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import org.dbuniproject.api.Api;
-import org.dbuniproject.api.db.structures.Brand;
-import org.dbuniproject.api.db.structures.ProductSize;
-import org.dbuniproject.api.db.structures.ProductType;
 import org.dbuniproject.api.db.structures.Region;
 import org.json.JSONObject;
 
@@ -55,35 +52,37 @@ public class DatabaseConnection implements AutoCloseable {
         return regions;
     }
 
-    public ArrayList<ProductSize> getProductSizes() throws SQLException {
+    public ArrayList<JSONObject> getProductSizes() throws SQLException {
         final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.talla");
 
-        final ArrayList<ProductSize> productSizes = new ArrayList<>();
+        final ArrayList<JSONObject> productSizes = new ArrayList<>();
 
         while (result.next()) {
-            final int id = result.getInt("id");
-            final String name = result.getString("nombre");
-
-            productSizes.add(new ProductSize(id, name));
+            productSizes.add(new JSONObject()
+                    .put("id", result.getInt("id"))
+                    .put("name", result.getString("nombre"))
+            );
         }
 
         return productSizes;
     }
 
     @Nullable
-    public ProductSize getProductSize(int id) throws SQLException {
+    public JSONObject getProductSize(int id) throws SQLException {
         final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.talla WHERE id = ?");
         query.setInt(1, id);
 
         final ResultSet result = query.executeQuery();
 
         return result.next()
-                ? new ProductSize(result.getInt("id"), result.getString("nombre"))
+                ? new JSONObject()
+                .put("id", result.getInt("id"))
+                .put("name", result.getString("nombre"))
                 : null;
     }
 
     @Nullable
-    public ProductSize getProductSize(@Nonnull String name) throws SQLException {
+    public JSONObject getProductSize(@Nonnull String name) throws SQLException {
         final PreparedStatement query = connection.prepareStatement(
                 "SELECT * FROM project.talla WHERE nombre ILIKE '%' || ? || '%'"
         );
@@ -91,10 +90,11 @@ public class DatabaseConnection implements AutoCloseable {
 
         final ResultSet result = query.executeQuery();
 
-        return result.next() ? new ProductSize(
-                result.getInt("id"),
-                result.getString("nombre")
-        ) : null;
+        return result.next()
+                ? new JSONObject()
+                .put("id", result.getInt("id"))
+                .put("name", result.getString("nombre"))
+                : null;
     }
 
     public void insertProductSize(@Nonnull String name) throws SQLException {
@@ -104,38 +104,39 @@ public class DatabaseConnection implements AutoCloseable {
         query.executeUpdate();
     }
 
-    public ArrayList<ProductType> getProductTypes() throws SQLException {
+    public ArrayList<JSONObject> getProductTypes() throws SQLException {
         final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.tipo");
 
-        final ArrayList<ProductType> productTypes = new ArrayList<>();
+        final ArrayList<JSONObject> productTypes = new ArrayList<>();
 
         while (result.next()) {
-            final int id = result.getInt("id");
-            final String name = result.getString("nombre");
-            final String description = result.getString("descripcion");
-
-            productTypes.add(new ProductType(id, name, description));
+            productTypes.add(new JSONObject()
+                    .put("id", result.getInt("id"))
+                    .put("name", result.getString("nombre"))
+                    .put("description", result.getString("descripcion"))
+            );
         }
 
         return productTypes;
     }
 
     @Nullable
-    public ProductType getProductType(int id) throws SQLException {
+    public JSONObject getProductType(int id) throws SQLException {
         final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.tipo WHERE id = ?");
         query.setInt(1, id);
 
         final ResultSet result = query.executeQuery();
 
-        return result.next() ? new ProductType(
-                result.getInt("id"),
-                result.getString("nombre"),
-                result.getString("descripcion")
-        ) : null;
+        return result.next()
+                ? new JSONObject()
+                .put("id", result.getInt("id"))
+                .put("name", result.getString("nombre"))
+                .put("description", result.getString("descripcion"))
+                : null;
     }
 
     @Nullable
-    public ProductType getProductType(@Nonnull String name) throws SQLException {
+    public JSONObject getProductType(@Nonnull String name) throws SQLException {
         final PreparedStatement query = connection.prepareStatement(
                 "SELECT * FROM project.tipo WHERE ? LIKE nombre ILIKE '%' || ? || '%'"
         );
@@ -143,11 +144,12 @@ public class DatabaseConnection implements AutoCloseable {
 
         final ResultSet result = query.executeQuery();
 
-        return result.next() ? new ProductType(
-                result.getInt("id"),
-                result.getString("nombre"),
-                result.getString("descripcion")
-        ) : null;
+        return result.next()
+                ? new JSONObject()
+                .put("id", result.getInt("id"))
+                .put("name", result.getString("nombre"))
+                .put("description", result.getString("descripcion"))
+                : null;
     }
 
     public void insertProductType(@Nonnull String name, @Nonnull String description) throws SQLException {
@@ -160,36 +162,37 @@ public class DatabaseConnection implements AutoCloseable {
         query.executeUpdate();
     }
 
-    public ArrayList<Brand> getBrands() throws SQLException {
+    public ArrayList<JSONObject> getBrands() throws SQLException {
         final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.marca");
 
-        final ArrayList<Brand> brands = new ArrayList<>();
+        final ArrayList<JSONObject> brands = new ArrayList<>();
 
         while (result.next()) {
-            final int id = result.getInt("id");
-            final String name = result.getString("nombre");
-
-            brands.add(new Brand(id, name));
+            brands.add(new JSONObject()
+                    .put("id", result.getInt("id"))
+                    .put("name", result.getString("nombre"))
+            );
         }
 
         return brands;
     }
 
     @Nullable
-    public Brand getBrand(int id) throws SQLException {
+    public JSONObject getBrand(int id) throws SQLException {
         final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.marca WHERE id = ?");
         query.setInt(1, id);
 
         final ResultSet result = query.executeQuery();
 
-        return result.next() ? new Brand(
-                result.getInt("id"),
-                result.getString("nombre")
-        ) : null;
+        return result.next()
+                ? new JSONObject()
+                .put("id", result.getInt("id"))
+                .put("name", result.getString("nombre"))
+                : null;
     }
 
     @Nullable
-    public Brand getBrand(@Nonnull String name) throws SQLException {
+    public JSONObject getBrand(@Nonnull String name) throws SQLException {
         final PreparedStatement query = connection.prepareStatement(
                 "SELECT * FROM project.marca WHERE ? LIKE nombre ILIKE '%' || ? || '%'"
         );
@@ -197,10 +200,11 @@ public class DatabaseConnection implements AutoCloseable {
 
         final ResultSet result = query.executeQuery();
 
-        return result.next() ? new Brand(
-                result.getInt("id"),
-                result.getString("nombre")
-        ) : null;
+        return result.next()
+                ? new JSONObject()
+                .put("id", result.getInt("id"))
+                .put("name", result.getString("nombre"))
+                : null;
     }
 
     public void insertBrand(@Nonnull String name) throws SQLException {
@@ -385,6 +389,8 @@ public class DatabaseConnection implements AutoCloseable {
                 .put("price", result.getInt("price"))
                 : null;
     }
+
+//    public ArrayList<JSONObject>
 
     @Override
     public void close() throws SQLException {

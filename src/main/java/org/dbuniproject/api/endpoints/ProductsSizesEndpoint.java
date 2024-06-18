@@ -4,7 +4,6 @@ import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.validation.Validator;
 import org.dbuniproject.api.db.DatabaseConnection;
-import org.dbuniproject.api.db.structures.ProductSize;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
@@ -21,7 +20,7 @@ public class ProductsSizesEndpoint extends Endpoint implements Endpoint.GetMetho
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
             if (id.hasValue()) {
-                final ProductSize size = db.getProductSize(id.get());
+                final JSONObject size = db.getProductSize(id.get());
                 if (size == null) {
                     throw new EndpointException(HttpStatus.NOT_FOUND, "Product size does not exist.");
                 }
@@ -31,7 +30,7 @@ public class ProductsSizesEndpoint extends Endpoint implements Endpoint.GetMetho
             }
 
             if (name != null && !name.isEmpty()) {
-                final ProductSize size = db.getProductSize(name);
+                final JSONObject size = db.getProductSize(name);
                 if (size == null) {
                     throw new EndpointException(HttpStatus.NOT_FOUND, "Product size does not exist.");
                 }
