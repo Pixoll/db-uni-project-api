@@ -21,7 +21,7 @@ public class DatabaseConnection implements AutoCloseable {
 
     public ArrayList<Region> getRegionsWithCommunes() throws SQLException {
         final ResultSet result = connection.createStatement().executeQuery("""
-                SELECT R.numero AS region_number, R.nombre AS region_name, C.id AS commune_id, C.nombre AS commune_name
+                SELECT R.numero AS regionNumber, R.nombre AS regionName, C.id AS communeId, C.nombre AS communeName
                     FROM project.comuna AS C
                     INNER JOIN project.region AS R ON R.numero = C.region"""
         );
@@ -29,9 +29,9 @@ public class DatabaseConnection implements AutoCloseable {
         final ArrayList<Region> regions = new ArrayList<>();
 
         while (result.next()) {
-            final short regionNumber = result.getShort("region_number");
-            final short communeId = result.getShort("commune_id");
-            final String communeName = result.getString("commune_name");
+            final short regionNumber = result.getShort("regionNumber");
+            final short communeId = result.getShort("communeId");
+            final String communeName = result.getString("communeName");
 
             boolean addedCommune = false;
             for (final Region region : regions) {
@@ -43,7 +43,7 @@ public class DatabaseConnection implements AutoCloseable {
             }
 
             if (!addedCommune) {
-                final Region region = new Region(regionNumber, result.getString("region_name"));
+                final Region region = new Region(regionNumber, result.getString("regionName"));
                 region.addCommune(communeId, communeName);
                 regions.add(region);
             }
