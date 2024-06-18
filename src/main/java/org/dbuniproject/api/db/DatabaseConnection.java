@@ -404,6 +404,7 @@ public class DatabaseConnection implements AutoCloseable {
     public ArrayList<JSONObject> getProductStocks(long sku) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement("""
                 SELECT
+                    SU.id AS storeId,
                     SU.nombre AS storeName,
                     ST.actual + ST.bodega AS stock
                     FROM project.stock AS ST
@@ -418,6 +419,7 @@ public class DatabaseConnection implements AutoCloseable {
 
         while (result.next()) {
             stocks.add(new JSONObject()
+                    .put("storeId", result.getInt("storeId"))
                     .put("storeName", result.getString("storeName"))
                     .put("stock", result.getInt("stock"))
             );
