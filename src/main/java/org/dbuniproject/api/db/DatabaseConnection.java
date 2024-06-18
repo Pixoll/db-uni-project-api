@@ -428,6 +428,60 @@ public class DatabaseConnection implements AutoCloseable {
         return stocks;
     }
 
+    public ArrayList<JSONObject> getStores() throws SQLException {
+        final ResultSet result = this.connection.createStatement().executeQuery("""
+                SELECT
+                    S.id,
+                    S.nombre AS name,
+                    S.direccion_calle AS addressStreet,
+                    S.direccion_numero AS addressNumber,
+                    C.nombre AS commune
+                    FROM project.sucursal AS S
+                    INNER JOIN project.comuna AS C ON C.id = S.id_comuna"""
+        );
+
+        final ArrayList<JSONObject> stores = new ArrayList<>();
+
+        while (result.next()) {
+            stores.add(new JSONObject()
+                    .put("id", result.getInt("id"))
+                    .put("name", result.getString("name"))
+                    .put("addressStreet", result.getString("addressStreet"))
+                    .put("addressNumber", result.getShort("addressNumber"))
+                    .put("commune", result.getString("commune"))
+            );
+        }
+
+        return stores;
+    }
+
+    @Nullable
+    public JSONObject getStore(int id) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT
+                    S.id,
+                    S.nombre AS name,
+                    S.direccion_calle AS addressStreet,
+                    S.direccion_numero AS addressNumber,
+                    C.nombre AS commune
+                    FROM project.sucursal AS S
+                    INNER JOIN project.comuna AS C ON C.id = S.id_comuna
+                    WHERE S.id = ?"""
+        );
+        query.setInt(1, id);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next()
+                ? new JSONObject()
+                .put("id", result.getInt("id"))
+                .put("name", result.getString("name"))
+                .put("addressStreet", result.getString("addressStreet"))
+                .put("addressNumber", result.getShort("addressNumber"))
+                .put("commune", result.getString("commune"))
+                : null;
+    }
+
     @Override
     public void close() throws SQLException {
         this.connection.close();
