@@ -3,7 +3,10 @@ package org.dbuniproject.api.db;
 import org.dbuniproject.api.Api;
 import org.dbuniproject.api.db.structures.Region;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class DatabaseConnection implements AutoCloseable {
@@ -24,8 +27,8 @@ public class DatabaseConnection implements AutoCloseable {
         final ArrayList<Region> regions = new ArrayList<>();
 
         while (result.next()) {
-            final int regionNumber = result.getInt("region_number");
-            final int communeId = result.getInt("commune_id");
+            final short regionNumber = result.getShort("region_number");
+            final short communeId = result.getShort("commune_id");
             final String communeName = result.getString("commune_name");
 
             boolean addedCommune = false;

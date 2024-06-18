@@ -16,6 +16,22 @@ public abstract class Endpoint {
         this.path = path;
     }
 
+    public static void beforeMatched(Context ctx) throws EndpointException {
+        final String now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                .replaceAll("T|\\.\\d+$", " ")
+                .stripTrailing();
+
+        final HandlerType method = ctx.method();
+        System.out.println("[" + now + "] " + method.name() + " " + ctx.matchedPath()
+                + "\nbody: " + ctx.body()
+                + "\nquery: " + ctx.queryString()
+        );
+
+        if (method == HandlerType.POST && !Objects.equals(ctx.header(Header.CONTENT_TYPE), "application/json")) {
+            throw new EndpointException(HttpStatus.BAD_REQUEST, "Content-Type header must be 'application/json'.");
+        }
+    }
+
     public interface GetMethod {
         void get(Context ctx) throws EndpointException;
     }
@@ -37,21 +53,5 @@ public abstract class Endpoint {
     }
 
     public interface AllMethods extends GetMethod, PostMethod, PutMethod, PatchMethod, DeleteMethod {
-    }
-
-    public static void beforeMatched(Context ctx) throws EndpointException {
-        final String now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                .replaceAll("T|\\.\\d+$", " ")
-                .stripTrailing();
-
-        final HandlerType method = ctx.method();
-        System.out.println("[" + now + "] " + method.name() + " " + ctx.matchedPath()
-                + "\nbody: " + ctx.body()
-                + "\nquery: " + ctx.queryString()
-        );
-
-        if (method == HandlerType.POST && !Objects.equals(ctx.header(Header.CONTENT_TYPE), "application/json")) {
-            throw new EndpointException(HttpStatus.BAD_REQUEST, "Content-Type header must be 'application/json'.");
-        }
     }
 }

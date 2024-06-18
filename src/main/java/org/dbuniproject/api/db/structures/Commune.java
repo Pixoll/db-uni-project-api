@@ -4,11 +4,11 @@ import jakarta.annotation.Nonnull;
 import org.json.JSONObject;
 
 public class Commune extends Structure {
-    public final int id;
+    public final short id;
     @Nonnull
-    public final String name;
+    public String name;
 
-    public Commune(int id, @Nonnull String name) {
+    public Commune(short id, @Nonnull String name) {
         this.id = id;
         this.name = name;
     }

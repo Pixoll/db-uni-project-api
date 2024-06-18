@@ -7,17 +7,19 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class Region extends Structure {
-    public final int number;
-    public final String name;
+    public final short number;
+    @Nonnull
     public final ArrayList<Commune> communes;
+    @Nonnull
+    public String name;
 
-    public Region(int number, String name) {
+    public Region(short number, @Nonnull String name) {
         this.number = number;
         this.name = name;
         this.communes = new ArrayList<>();
     }
 
-    public void addCommune(int id, String name) {
+    public void addCommune(short id, @Nonnull String name) {
         communes.add(new Commune(id, name));
     }
 

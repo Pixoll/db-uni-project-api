@@ -5,7 +5,10 @@ import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
-import org.dbuniproject.api.endpoints.*;
+import org.dbuniproject.api.endpoints.Endpoint;
+import org.dbuniproject.api.endpoints.EndpointException;
+import org.dbuniproject.api.endpoints.PingEndpoint;
+import org.dbuniproject.api.endpoints.RegionsEndpoint;
 
 public class Api {
     public static final Dotenv DOTENV = Dotenv.load();

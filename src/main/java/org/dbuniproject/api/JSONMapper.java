@@ -2,13 +2,12 @@ package org.dbuniproject.api;
 
 import io.javalin.http.HttpStatus;
 import io.javalin.json.JsonMapper;
+import jakarta.annotation.Nonnull;
 import org.dbuniproject.api.db.structures.Structure;
+import org.dbuniproject.api.endpoints.EndpointException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.dbuniproject.api.endpoints.EndpointException;
-
-import jakarta.annotation.Nonnull;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
