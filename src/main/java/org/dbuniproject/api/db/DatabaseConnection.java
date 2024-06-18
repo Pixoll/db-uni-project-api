@@ -310,8 +310,8 @@ public class DatabaseConnection implements AutoCloseable {
 
         if (sortByNameAsc != null || sortByPriceAsc != null) {
             final ArrayList<String> sorts = new ArrayList<>();
-            if (sortByNameAsc != null) sorts.add("P.nombre " + (sortByNameAsc ? "ASC" : "DESC"));
             if (sortByPriceAsc != null) sorts.add("P.precio_sin_iva " + (sortByPriceAsc ? "ASC" : "DESC"));
+            if (sortByNameAsc != null) sorts.add("P.nombre " + (sortByNameAsc ? "ASC" : "DESC"));
 
             sql += " ORDER BY " + String.join(", ", sorts);
         }
