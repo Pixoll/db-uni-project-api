@@ -11,7 +11,7 @@ public class Region extends Structure {
     @Nonnull
     public final ArrayList<Commune> communes;
     @Nonnull
-    public String name;
+    public final String name;
 
     public Region(short number, @Nonnull String name) {
         this.number = number;

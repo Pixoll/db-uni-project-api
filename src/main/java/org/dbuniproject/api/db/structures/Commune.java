@@ -6,7 +6,7 @@ import org.json.JSONObject;
 public class Commune extends Structure {
     public final short id;
     @Nonnull
-    public String name;
+    public final String name;
 
     public Commune(short id, @Nonnull String name) {
         this.id = id;
