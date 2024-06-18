@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import org.dbuniproject.api.Util;
 import org.dbuniproject.api.db.DatabaseConnection;
+import org.json.JSONObject;
 
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -15,31 +16,34 @@ public class ProductsEndpoint extends Endpoint implements Endpoint.GetMethod {
     }
 
     @Override
-    public void get(Context ctx) {
+    public void get(Context ctx) throws EndpointException {
+        final Long sku = Util.getQueryParam(ctx, "sku", Long.class);
+        if (sku != null) {
+            try (final DatabaseConnection db = new DatabaseConnection()) {
+                final JSONObject product = db.getProduct(sku);
+                if (product == null) {
+                    throw new EndpointException(HttpStatus.NOT_FOUND, "Product does not exist.");
+                }
+
+                ctx.status(HttpStatus.OK).json(product);
+                return;
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         final String name = ctx.queryParam("name");
-        final List<Integer> types = Util.queryListToIntegerList(ctx.queryParams("type"));
-        final List<Integer> sizes = Util.queryListToIntegerList(ctx.queryParams("size"));
-        final List<Integer> colors = Util.queryListToIntegerList(ctx.queryParams("color"));
-        final List<Integer> brands = Util.queryListToIntegerList(ctx.queryParams("brand"));
-        final List<Integer> regions = Util.queryListToIntegerList(ctx.queryParams("region"));
-        final List<Integer> communes = Util.queryListToIntegerList(ctx.queryParams("commune"));
+        final List<Integer> types = Util.getQueryParamAsIntegerList(ctx, "type");
+        final List<Integer> sizes = Util.getQueryParamAsIntegerList(ctx, "size");
+        final List<Integer> colors = Util.getQueryParamAsIntegerList(ctx, "color");
+        final List<Integer> brands = Util.getQueryParamAsIntegerList(ctx, "brand");
+        final List<Integer> regions = Util.getQueryParamAsIntegerList(ctx, "region");
+        final List<Integer> communes = Util.getQueryParamAsIntegerList(ctx, "commune");
         final List<String> sortBy = ctx.queryParams("sortBy").stream()
                 .flatMap(s -> Arrays.stream(s.split(",")))
                 .toList();
-        Integer minPrice;
-        Integer maxPrice;
-
-        try {
-            minPrice = ctx.queryParamAsClass("minPrice", Integer.class).getOrDefault(null);
-        } catch (Exception ignored) {
-            minPrice = null;
-        }
-
-        try {
-            maxPrice = ctx.queryParamAsClass("maxPrice", Integer.class).getOrDefault(null);
-        } catch (Exception ignored) {
-            maxPrice = null;
-        }
+        final Integer minPrice = Util.getQueryParam(ctx, "minPrice", Integer.class);
+        final Integer maxPrice = Util.getQueryParam(ctx, "maxPrice", Integer.class);
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
             ctx.status(HttpStatus.OK).json(db.getProducts(

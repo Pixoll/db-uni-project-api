@@ -354,6 +354,38 @@ public class DatabaseConnection implements AutoCloseable {
         return products;
     }
 
+    @Nullable
+    public JSONObject getProduct(long sku) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("""
+                SELECT
+                     P.nombre AS name,
+                     P.descripcion AS description,
+                     M.nombre AS brand,
+                     TI.nombre AS type,
+                     TA.nombre AS size,
+                     P.color,
+                     project.aplicar_iva(P.precio_sin_iva) AS price
+                     FROM project.producto AS P
+                     INNER JOIN project.tipo AS TI ON TI.id = P.id_tipo
+                     INNER JOIN project.talla AS TA ON TA.id = P.id_talla
+                     INNER JOIN project.marca AS M on M.id = P.id_marca
+                     WHERE P.sku = ?"""
+        );
+        query.setLong(1, sku);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new JSONObject()
+                .put("name", result.getString("name"))
+                .put("description", result.getString("description"))
+                .put("brand", result.getString("brand"))
+                .put("type", result.getString("type"))
+                .put("size", result.getString("size"))
+                .put("color", result.getInt("color"))
+                .put("price", result.getInt("price"))
+                : null;
+    }
+
     @Override
     public void close() throws SQLException {
         this.connection.close();
