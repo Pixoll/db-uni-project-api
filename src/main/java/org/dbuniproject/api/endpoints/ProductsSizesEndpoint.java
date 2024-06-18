@@ -5,10 +5,11 @@ import io.javalin.http.HttpStatus;
 import io.javalin.validation.Validator;
 import org.dbuniproject.api.db.DatabaseConnection;
 import org.dbuniproject.api.db.structures.ProductSize;
+import org.json.JSONObject;
 
 import java.sql.SQLException;
 
-public class ProductsSizesEndpoint extends Endpoint implements Endpoint.GetMethod {
+public class ProductsSizesEndpoint extends Endpoint implements Endpoint.GetMethod, Endpoint.PostMethod {
     public ProductsSizesEndpoint() {
         super("/products/sizes");
     }
@@ -40,6 +41,25 @@ public class ProductsSizesEndpoint extends Endpoint implements Endpoint.GetMetho
             }
 
             ctx.status(HttpStatus.OK).json(db.getProductSizes());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void post(Context ctx) throws EndpointException {
+        final JSONObject body = ctx.bodyAsClass(JSONObject.class);
+        final String name = body.optString("name");
+        if (name.isEmpty()) {
+            throw new EndpointException(HttpStatus.BAD_REQUEST, "Product size name cannot be empty.");
+        }
+
+        try (final DatabaseConnection db = new DatabaseConnection()) {
+            if (db.getProductSize(name) != null) {
+                throw new EndpointException(HttpStatus.BAD_REQUEST, "Product size already exists.");
+            }
+
+            db.insertProductSize(name);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

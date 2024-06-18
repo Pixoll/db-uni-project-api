@@ -5,10 +5,11 @@ import io.javalin.http.HttpStatus;
 import io.javalin.validation.Validator;
 import org.dbuniproject.api.db.DatabaseConnection;
 import org.dbuniproject.api.db.structures.ProductType;
+import org.json.JSONObject;
 
 import java.sql.SQLException;
 
-public class ProductsTypesEndpoint extends Endpoint implements Endpoint.GetMethod {
+public class ProductsTypesEndpoint extends Endpoint implements Endpoint.GetMethod, Endpoint.PostMethod {
     public ProductsTypesEndpoint() {
         super("/products/types");
     }
@@ -40,6 +41,31 @@ public class ProductsTypesEndpoint extends Endpoint implements Endpoint.GetMetho
             }
 
             ctx.status(HttpStatus.OK).json(db.getProductTypes());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void post(Context ctx) throws EndpointException {
+        final JSONObject body = ctx.bodyAsClass(JSONObject.class);
+        final String name = body.optString("name");
+        final String description = body.optString("description");
+
+        if (name.isEmpty()) {
+            throw new EndpointException(HttpStatus.BAD_REQUEST, "Product size name cannot be empty.");
+        }
+
+        if (description.isEmpty()) {
+            throw new EndpointException(HttpStatus.BAD_REQUEST, "Product size description cannot be empty.");
+        }
+
+        try (final DatabaseConnection db = new DatabaseConnection()) {
+            if (db.getProductType(name) != null) {
+                throw new EndpointException(HttpStatus.BAD_REQUEST, "Product type already exists.");
+            }
+
+            db.insertProductType(name, description);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

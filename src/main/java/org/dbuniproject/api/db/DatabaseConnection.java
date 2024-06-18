@@ -80,7 +80,7 @@ public class DatabaseConnection implements AutoCloseable {
     }
 
     @Nullable
-    public ProductSize getProductSize(String name) throws SQLException {
+    public ProductSize getProductSize(@Nonnull String name) throws SQLException {
         final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.talla WHERE nombre = ?");
         query.setString(1, name);
 
@@ -90,6 +90,13 @@ public class DatabaseConnection implements AutoCloseable {
                 result.getInt("id"),
                 result.getString("nombre")
         ) : null;
+    }
+
+    public void insertProductSize(@Nonnull String name) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("INSERT INTO project.talla (nombre) VALUES (?)");
+        query.setString(1, name);
+
+        query.executeUpdate();
     }
 
     public ArrayList<ProductType> getProductTypes() throws SQLException {
@@ -123,7 +130,7 @@ public class DatabaseConnection implements AutoCloseable {
     }
 
     @Nullable
-    public ProductType getProductType(String name) throws SQLException {
+    public ProductType getProductType(@Nonnull String name) throws SQLException {
         final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.tipo WHERE nombre = ?");
         query.setString(1, name);
 
@@ -134,6 +141,16 @@ public class DatabaseConnection implements AutoCloseable {
                 result.getString("nombre"),
                 result.getString("descripcion")
         ) : null;
+    }
+
+    public void insertProductType(@Nonnull String name, @Nonnull String description) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement(
+                "INSERT INTO project.tipo (nombre, descripcion) VALUES (?, ?)"
+        );
+        query.setString(1, name);
+        query.setString(2, description);
+
+        query.executeUpdate();
     }
 
     public ArrayList<Brand> getBrands() throws SQLException {
@@ -165,7 +182,7 @@ public class DatabaseConnection implements AutoCloseable {
     }
 
     @Nullable
-    public Brand getBrand(String name) throws SQLException {
+    public Brand getBrand(@Nonnull String name) throws SQLException {
         final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.marca WHERE nombre = ?");
         query.setString(1, name);
 
@@ -175,6 +192,13 @@ public class DatabaseConnection implements AutoCloseable {
                 result.getInt("id"),
                 result.getString("nombre")
         ) : null;
+    }
+
+    public void insertBrand(@Nonnull String name) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("INSERT INTO project.marca (nombre) VALUES (?)");
+        query.setString(1, name);
+
+        query.executeUpdate();
     }
 
     @Override

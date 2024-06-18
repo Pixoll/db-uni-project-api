@@ -5,10 +5,11 @@ import io.javalin.http.HttpStatus;
 import io.javalin.validation.Validator;
 import org.dbuniproject.api.db.DatabaseConnection;
 import org.dbuniproject.api.db.structures.Brand;
+import org.json.JSONObject;
 
 import java.sql.SQLException;
 
-public class BrandsEndpoint extends Endpoint implements Endpoint.GetMethod {
+public class BrandsEndpoint extends Endpoint implements Endpoint.GetMethod, Endpoint.PostMethod {
     public BrandsEndpoint() {
         super("/brands");
     }
@@ -40,6 +41,26 @@ public class BrandsEndpoint extends Endpoint implements Endpoint.GetMethod {
             }
 
             ctx.status(HttpStatus.OK).json(db.getBrands());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void post(Context ctx) throws EndpointException {
+        final JSONObject body = ctx.bodyAsClass(JSONObject.class);
+        final String name = body.optString("name");
+        if (name.isEmpty()) {
+            throw new EndpointException(HttpStatus.BAD_REQUEST, "Brand name cannot be empty.");
+        }
+
+        try (final DatabaseConnection db = new DatabaseConnection()) {
+            if (db.getBrand(name) != null) {
+                throw new EndpointException(HttpStatus.CONFLICT, "Brand already exists.");
+            }
+
+            db.insertBrand(name);
+            ctx.status(HttpStatus.CREATED);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
