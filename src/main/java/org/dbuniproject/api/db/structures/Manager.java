@@ -13,10 +13,9 @@ public class Manager extends Employee {
             @Nonnull String email,
             int phone,
             @Nonnull String password,
-            @Nonnull String salt,
-            int storeId
+            @Nonnull String salt
     ) {
-        super(rut, firstName, secondName, firstLastName, secondLastName, email, phone, password, salt, storeId);
+        super(rut, firstName, secondName, firstLastName, secondLastName, email, phone, password, salt);
     }
 
     @Nonnull
@@ -30,8 +29,7 @@ public class Manager extends Employee {
                 .put("secondLastName", this.secondLastName)
                 .put("email", this.email)
                 .put("phone", this.phone)
-                .put("password", this.password)
-                .put("storeId", this.storeId);
+                .put("password", this.password);
     }
 
     @Nonnull
@@ -46,8 +44,7 @@ public class Manager extends Employee {
                 this.email,
                 this.phone,
                 this.password,
-                this.salt,
-                this.storeId
+                this.salt
         );
     }
 }

@@ -16,10 +16,9 @@ public class Cashier extends Employee {
             int phone,
             boolean fullTime,
             @Nonnull String password,
-            @Nonnull String salt,
-            int storeId
+            @Nonnull String salt
     ) {
-        super(rut, firstName, secondName, firstLastName, secondLastName, email, phone, password, salt, storeId);
+        super(rut, firstName, secondName, firstLastName, secondLastName, email, phone, password, salt);
 
         this.fullTime = fullTime;
     }
@@ -36,8 +35,7 @@ public class Cashier extends Employee {
                 .put("email", this.email)
                 .put("phone", this.phone)
                 .put("fullTime", this.fullTime)
-                .put("password", this.password)
-                .put("storeId", this.storeId);
+                .put("password", this.password);
     }
 
     @Nonnull
@@ -53,8 +51,7 @@ public class Cashier extends Employee {
                 this.phone,
                 this.fullTime,
                 this.password,
-                this.salt,
-                this.storeId
+                this.salt
         );
     }
 }

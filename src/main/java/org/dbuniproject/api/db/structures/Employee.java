@@ -9,7 +9,6 @@ public abstract class Employee extends Person {
     public String password;
     @Nonnull
     public String salt;
-    public int storeId;
 
     public Employee(
             @Nonnull String rut,
@@ -20,14 +19,12 @@ public abstract class Employee extends Person {
             @Nonnull String email,
             int phone,
             @Nonnull String password,
-            @Nonnull String salt,
-            int storeId
+            @Nonnull String salt
     ) {
         super(rut, firstName, secondName, firstLastName, secondLastName, email, phone);
 
         this.email = email;
         this.password = password;
         this.salt = salt;
-        this.storeId = storeId;
     }
 }
