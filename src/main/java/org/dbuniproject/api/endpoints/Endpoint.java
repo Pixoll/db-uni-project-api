@@ -57,7 +57,4 @@ public abstract class Endpoint {
     public interface DeleteMethod {
         void delete(Context ctx) throws EndpointException;
     }
-
-    public interface AllMethods extends GetMethod, PostMethod, PutMethod, PatchMethod, DeleteMethod {
-    }
 }
