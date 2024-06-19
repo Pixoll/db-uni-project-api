@@ -47,9 +47,9 @@ public class EmployeesSessionsEndpoint extends Endpoint implements Endpoint.Post
                 throw new EndpointException(HttpStatus.UNAUTHORIZED, "Wrong password.");
             }
 
-            ctx.status(HttpStatus.OK).json(new JSONObject().put("session_token",
-                    SessionTokenManager.generateSessionToken(type, rut)
-            ));
+            ctx.status(HttpStatus.OK).json(new JSONObject()
+                    .put("session_token", SessionTokenManager.generateSessionToken(type, rut))
+            );
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
