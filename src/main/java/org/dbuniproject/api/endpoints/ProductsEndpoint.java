@@ -2,6 +2,7 @@ package org.dbuniproject.api.endpoints;
 
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+import org.dbuniproject.api.SessionTokenManager;
 import org.dbuniproject.api.Util;
 import org.dbuniproject.api.db.DatabaseConnection;
 import org.json.JSONObject;
@@ -16,6 +17,16 @@ public class ProductsEndpoint extends Endpoint implements Endpoint.GetMethod {
 
     @Override
     public void get(Context ctx) throws EndpointException {
+        final SessionTokenManager.Token sessionToken = getSessionToken(ctx);
+        if (sessionToken != null) {
+            try (final DatabaseConnection db = new DatabaseConnection()) {
+                ctx.status(HttpStatus.OK).json(db.getProductsByEmployee(sessionToken.rut()));
+                return;
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         final Long sku = Util.getQueryParam(ctx, "sku", Long.class);
         if (sku != null) {
             try (final DatabaseConnection db = new DatabaseConnection()) {
