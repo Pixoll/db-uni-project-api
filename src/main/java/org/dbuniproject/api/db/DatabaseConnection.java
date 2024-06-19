@@ -216,24 +216,17 @@ public class DatabaseConnection implements AutoCloseable {
 
     public ArrayList<JSONObject> getProducts(
             @Nullable String name,
-            List<Integer> types,
-            List<Integer> sizes,
-            List<Integer> brands,
-            List<Integer> colors,
-            List<Integer> regions,
-            List<Integer> communes,
+            @Nonnull List<Integer> types,
+            @Nonnull List<Integer> sizes,
+            @Nonnull List<Integer> brands,
+            @Nonnull List<Integer> colors,
+            @Nonnull List<Integer> regions,
+            @Nonnull List<Integer> communes,
             @Nullable Integer minPrice,
             @Nullable Integer maxPrice,
             @Nullable Boolean sortByNameAsc,
             @Nullable Boolean sortByPriceAsc
     ) throws SQLException {
-        final boolean typesFilter = types != null && !types.isEmpty();
-        final boolean sizesFilter = sizes != null && !sizes.isEmpty();
-        final boolean brandsFilter = brands != null && !brands.isEmpty();
-        final boolean colorsFilter = colors != null && !colors.isEmpty();
-        final boolean regionsFilter = regions != null && !regions.isEmpty();
-        final boolean communesFilter = communes != null && !communes.isEmpty();
-
         final AtomicInteger argumentCounter = new AtomicInteger(1);
         int nameArgPosition = -1;
         int minPriceArgPosition = -1;
@@ -258,12 +251,12 @@ public class DatabaseConnection implements AutoCloseable {
                     INNER JOIN project.Stock AS ST ON ST.sku_producto = P.sku
                     INNER JOIN project.Marca AS M ON M.id = P.id_marca""";
 
-        if (communesFilter || regionsFilter) {
+        if (!communes.isEmpty() || !regions.isEmpty()) {
             sql += " INNER JOIN project.Sucursal AS SU ON SU.id = ST.id_sucursal";
             sql += " INNER JOIN project.Comuna as C ON C.id = SU.id_comuna";
         }
 
-        if (regionsFilter) {
+        if (!regions.isEmpty()) {
             sql += " INNER JOIN project.Region as R ON R.numero = C.region";
         }
 
@@ -281,27 +274,27 @@ public class DatabaseConnection implements AutoCloseable {
             sql += " AND project.aplicar_iva(P.precio_sin_iva) >= ?";
             maxPriceArgPosition = argumentCounter.getAndIncrement();
         }
-        if (typesFilter) {
+        if (!types.isEmpty()) {
             sql += " AND P.id_tipo = ANY (?)";
             typesArgPosition = argumentCounter.getAndIncrement();
         }
-        if (sizesFilter) {
+        if (!sizes.isEmpty()) {
             sql += " AND P.id_talla = ANY (?)";
             sizesArgPosition = argumentCounter.getAndIncrement();
         }
-        if (brandsFilter) {
+        if (!brands.isEmpty()) {
             sql += " AND P.id_marca = ANY (?)";
             brandsArgPosition = argumentCounter.getAndIncrement();
         }
-        if (colorsFilter) {
+        if (!colors.isEmpty()) {
             sql += " AND P.color = ANY (?)";
             colorsArgPosition = argumentCounter.getAndIncrement();
         }
-        if (communesFilter) {
+        if (!communes.isEmpty()) {
             sql += " AND C.id = ANY (?)";
             communesArgPosition = argumentCounter.getAndIncrement();
         }
-        if (regionsFilter) {
+        if (!regions.isEmpty()) {
             sql += " AND R.numero = ANY (?)";
             regionsArgPosition = argumentCounter.getAndIncrement();
         }
