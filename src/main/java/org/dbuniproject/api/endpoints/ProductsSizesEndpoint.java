@@ -3,6 +3,7 @@ package org.dbuniproject.api.endpoints;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.validation.Validator;
+import org.dbuniproject.api.SessionTokenManager;
 import org.dbuniproject.api.db.DatabaseConnection;
 import org.json.JSONObject;
 
@@ -47,6 +48,11 @@ public class ProductsSizesEndpoint extends Endpoint implements Endpoint.GetMetho
 
     @Override
     public void post(Context ctx) throws EndpointException {
+        final SessionTokenManager.Token sessionToken = getSessionToken(ctx);
+        if (sessionToken == null || sessionToken.isManager()) {
+            throw new EndpointException(HttpStatus.UNAUTHORIZED, "Not a manager.");
+        }
+
         final JSONObject body = ctx.bodyAsClass(JSONObject.class);
         final String name = body.optString("name");
         if (name.isEmpty()) {
