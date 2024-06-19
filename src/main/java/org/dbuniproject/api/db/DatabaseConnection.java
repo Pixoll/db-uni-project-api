@@ -293,7 +293,7 @@ public class DatabaseConnection implements AutoCloseable {
             minPriceArgPosition = argumentCounter.getAndIncrement();
         }
         if (maxPrice != null) {
-            sql += " AND project.aplicar_iva(P.precio_sin_iva) >= ?";
+            sql += " AND project.aplicar_iva(P.precio_sin_iva) <= ?";
             maxPriceArgPosition = argumentCounter.getAndIncrement();
         }
         if (!types.isEmpty()) {
