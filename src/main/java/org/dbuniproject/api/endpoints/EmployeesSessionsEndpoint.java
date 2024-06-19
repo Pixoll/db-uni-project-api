@@ -5,7 +5,7 @@ import io.javalin.http.HttpStatus;
 import org.dbuniproject.api.SessionTokenManager;
 import org.dbuniproject.api.Util;
 import org.dbuniproject.api.db.DatabaseConnection;
-import org.dbuniproject.api.db.EmployeeCredentials;
+import org.dbuniproject.api.db.structures.EmployeeCredentials;
 import org.json.JSONObject;
 
 import java.sql.SQLException;

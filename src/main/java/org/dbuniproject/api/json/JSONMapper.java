@@ -1,9 +1,8 @@
-package org.dbuniproject.api;
+package org.dbuniproject.api.json;
 
 import io.javalin.http.HttpStatus;
 import io.javalin.json.JsonMapper;
 import jakarta.annotation.Nonnull;
-import org.dbuniproject.api.db.structures.Structure;
 import org.dbuniproject.api.endpoints.EndpointException;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,30 +14,30 @@ import java.util.Collection;
 public class JSONMapper implements JsonMapper {
     @Nonnull
     @Override
-    public String toJsonString(@Nonnull Object obj, @Nonnull Type type) {
-        if (obj instanceof JSONObject json) {
+    public String toJsonString(@Nonnull Object object, @Nonnull Type type) {
+        if (object instanceof JSONObject json) {
             return json.toString();
         }
 
-        if (obj instanceof JSONArray array) {
+        if (object instanceof JSONArray array) {
             return array.toString();
         }
 
-        if (obj instanceof Collection<?> collection) {
+        if (object instanceof Collection<?> collection) {
             return new JSONArray(collection.stream().map(element -> {
-                if (element instanceof Structure structure) {
-                    return structure.toJSON();
+                if (element instanceof JSONEncodable encodable) {
+                    return encodable.toJSON();
                 }
 
                 return element;
             }).toList()).toString();
         }
 
-        if (obj instanceof Structure structure) {
-            return structure.toJSON().toString();
+        if (object instanceof JSONEncodable encodable) {
+            return encodable.toJSON().toString();
         }
 
-        return obj.toString();
+        return object.toString();
     }
 
     @SuppressWarnings("unchecked")

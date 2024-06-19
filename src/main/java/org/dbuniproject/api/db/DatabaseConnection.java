@@ -4,6 +4,8 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import org.dbuniproject.api.Api;
 import org.dbuniproject.api.SessionTokenManager;
+import org.dbuniproject.api.db.structures.Client;
+import org.dbuniproject.api.db.structures.EmployeeCredentials;
 import org.dbuniproject.api.db.structures.Region;
 import org.json.JSONObject;
 
@@ -36,7 +38,7 @@ public class DatabaseConnection implements AutoCloseable {
 
             boolean addedCommune = false;
             for (final Region region : regions) {
-                if (region.number == regionNumber) {
+                if (region.number() == regionNumber) {
                     region.addCommune(communeId, communeName);
                     addedCommune = true;
                     break;
@@ -44,7 +46,11 @@ public class DatabaseConnection implements AutoCloseable {
             }
 
             if (!addedCommune) {
-                final Region region = new Region(regionNumber, result.getString("regionName"));
+                final Region region = new Region(
+                        regionNumber,
+                        result.getString("regionName"),
+                        new ArrayList<>()
+                );
                 region.addCommune(communeId, communeName);
                 regions.add(region);
             }

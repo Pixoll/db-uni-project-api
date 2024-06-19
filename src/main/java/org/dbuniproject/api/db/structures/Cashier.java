@@ -1,28 +1,21 @@
 package org.dbuniproject.api.db.structures;
 
 import jakarta.annotation.Nonnull;
+import org.dbuniproject.api.json.JSONEncodable;
 import org.json.JSONObject;
 
-public class Cashier extends Employee {
-    public boolean fullTime;
-
-    public Cashier(
-            @Nonnull String rut,
-            @Nonnull String firstName,
-            @Nonnull String secondName,
-            @Nonnull String firstLastName,
-            @Nonnull String secondLastName,
-            @Nonnull String email,
-            int phone,
-            boolean fullTime,
-            @Nonnull String password,
-            @Nonnull String salt
-    ) {
-        super(rut, firstName, secondName, firstLastName, secondLastName, email, phone, password, salt);
-
-        this.fullTime = fullTime;
-    }
-
+public record Cashier(
+        @Nonnull String rut,
+        @Nonnull String firstName,
+        @Nonnull String secondName,
+        @Nonnull String firstLastName,
+        @Nonnull String secondLastName,
+        @Nonnull String email,
+        int phone,
+        boolean fullTime,
+        @Nonnull String password,
+        @Nonnull String salt
+) implements JSONEncodable {
     @Nonnull
     @Override
     public JSONObject toJSON() {
@@ -36,22 +29,5 @@ public class Cashier extends Employee {
                 .put("phone", this.phone)
                 .put("fullTime", this.fullTime)
                 .put("password", this.password);
-    }
-
-    @Nonnull
-    @Override
-    public Cashier clone() {
-        return new Cashier(
-                this.rut,
-                this.firstName,
-                this.secondName,
-                this.firstLastName,
-                this.secondLastName,
-                this.email,
-                this.phone,
-                this.fullTime,
-                this.password,
-                this.salt
-        );
     }
 }

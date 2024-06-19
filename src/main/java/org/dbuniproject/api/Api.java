@@ -7,6 +7,7 @@ import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
 import io.javalin.plugin.bundled.CorsPluginConfig;
 import org.dbuniproject.api.endpoints.*;
+import org.dbuniproject.api.json.JSONMapper;
 
 public class Api {
     public static final Dotenv DOTENV = Dotenv.load();
