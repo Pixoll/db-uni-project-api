@@ -18,15 +18,15 @@ public class EmployeesSessionsEndpoint extends Endpoint implements Endpoint.Post
     @Override
     public void post(Context ctx) throws EndpointException {
         final JSONObject body = ctx.bodyAsClass(JSONObject.class);
-        final String email = body.optString("email");
+        final String rut = body.optString("rut");
         final String password = body.optString("password");
         final String typeString = body.optString("type");
         final SessionTokenManager.Token.Type type = Util.stringToEnum(typeString, SessionTokenManager.Token.Type.class);
 
-        if (email.isEmpty() || password.isEmpty() || typeString.isEmpty()) {
+        if (rut.isEmpty() || password.isEmpty() || typeString.isEmpty()) {
             throw new EndpointException(
                     HttpStatus.BAD_REQUEST,
-                    "Expected email, password and type in the request body."
+                    "Expected rut, password and type in the request body."
             );
         }
 
@@ -35,11 +35,11 @@ public class EmployeesSessionsEndpoint extends Endpoint implements Endpoint.Post
         }
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
-            final EmployeeCredentials credentials = db.getEmployeeCredentials(email, type);
+            final EmployeeCredentials credentials = db.getEmployeeCredentials(rut, type);
             if (credentials == null) {
                 throw new EndpointException(
                         HttpStatus.NOT_FOUND,
-                        "No credentials found for " + type + " with email " + email + "."
+                        "No credentials found for " + type + " with rut " + rut + "."
                 );
             }
 
@@ -48,7 +48,7 @@ public class EmployeesSessionsEndpoint extends Endpoint implements Endpoint.Post
             }
 
             ctx.status(HttpStatus.OK).json(new JSONObject().put("session_token",
-                    SessionTokenManager.generateSessionToken(type, email)
+                    SessionTokenManager.generateSessionToken(type, rut)
             ));
         } catch (SQLException e) {
             throw new RuntimeException(e);

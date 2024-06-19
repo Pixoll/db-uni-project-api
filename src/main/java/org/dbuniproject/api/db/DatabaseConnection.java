@@ -478,14 +478,14 @@ public class DatabaseConnection implements AutoCloseable {
 
     @Nullable
     public EmployeeCredentials getEmployeeCredentials(
-            @Nonnull String email,
+            @Nonnull String rut,
             @Nonnull SessionTokenManager.Token.Type type
     ) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(type == SessionTokenManager.Token.Type.CASHIER
-                ? "SELECT contraseña AS password, salt FROM project.vendedor WHERE email = ?"
-                : "SELECT contraseña AS password, salt FROM project.gerente WHERE email = ?"
+                ? "SELECT contraseña AS password, salt FROM project.vendedor WHERE rut = ?"
+                : "SELECT contraseña AS password, salt FROM project.gerente WHERE rut = ?"
         );
-        query.setString(1, email);
+        query.setString(1, rut);
 
         final ResultSet result = query.executeQuery();
 

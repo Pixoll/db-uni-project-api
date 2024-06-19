@@ -37,10 +37,10 @@ public class SessionTokenManager {
     }
 
     @Nonnull
-    public static Token generateSessionToken(@Nonnull Token.Type type, @Nonnull String email) {
+    public static Token generateSessionToken(@Nonnull Token.Type type, @Nonnull String rut) {
         final JSONObject destination = TOKENS.getJSONObject(type.toString());
-        if (destination.has(email)) {
-            revokeSessionToken(type, email);
+        if (destination.has(rut)) {
+            revokeSessionToken(type, rut);
         }
 
         String token;
@@ -50,38 +50,38 @@ public class SessionTokenManager {
             token = Base64.getEncoder().encodeToString(randomBytes);
         } while (destination.has(token));
 
-        destination.put(email, token);
-        destination.put(token, email);
+        destination.put(rut, token);
+        destination.put(token, rut);
         saveSessionTokens();
 
-        return new Token(token, email, type);
+        return new Token(token, rut, type);
     }
 
     @Nullable
     public static Token getSessionToken(@Nonnull String token) {
         for (final Token.Type type : Token.Type.values()) {
-            final String email = TOKENS.getJSONObject(type.name).optString(token, null);
-            if (email != null) {
-                return new Token(token, email, type);
+            final String rut = TOKENS.getJSONObject(type.name).optString(token, null);
+            if (rut != null) {
+                return new Token(token, rut, type);
             }
         }
 
         return null;
     }
 
-    public static void revokeSessionToken(@Nonnull Token.Type type, @Nonnull String email) {
+    public static void revokeSessionToken(@Nonnull Token.Type type, @Nonnull String rut) {
         final JSONObject source = TOKENS.getJSONObject(type.name);
-        if (!source.has(email)) return;
+        if (!source.has(rut)) return;
 
-        final String token = source.getString(email);
+        final String token = source.getString(rut);
 
-        source.remove(email);
+        source.remove(rut);
         source.remove(token);
         saveSessionTokens();
     }
 
     public static void revokeSessionToken(@Nonnull Token token) {
-        revokeSessionToken(token.type, token.email);
+        revokeSessionToken(token.type, token.rut);
     }
 
     private static void saveSessionTokens() {
@@ -92,7 +92,7 @@ public class SessionTokenManager {
         }
     }
 
-    public record Token(@Nonnull String token, @Nonnull String email, @Nonnull Type type) {
+    public record Token(@Nonnull String token, @Nonnull String rut, @Nonnull Type type) {
         public boolean isCashier() {
             return this.type == Type.CASHIER;
         }
