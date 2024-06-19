@@ -59,7 +59,7 @@ public class EmployeesSessionsEndpoint extends Endpoint implements Endpoint.Post
     public void delete(Context ctx) throws EndpointException {
         final SessionTokenManager.Token sessionToken = getSessionToken(ctx);
         if (sessionToken == null) {
-            throw new EndpointException(HttpStatus.UNAUTHORIZED, "Not logged in.");
+            throw new EndpointException(HttpStatus.NOT_FOUND, "No active session found.");
         }
 
         SessionTokenManager.revokeSessionToken(sessionToken);
