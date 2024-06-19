@@ -1,6 +1,7 @@
 package org.dbuniproject.api.db.structures;
 
 import jakarta.annotation.Nonnull;
+import org.dbuniproject.api.Util;
 import org.dbuniproject.api.json.JSONEncodable;
 import org.json.JSONObject;
 
@@ -12,7 +13,21 @@ public record Client(
         @Nonnull String secondLastName,
         @Nonnull String email,
         int phone
-) implements JSONEncodable {
+) implements JSONEncodable, Validatable {
+    public Client(JSONObject json) throws ValidationException {
+        this(
+                json.optString("rut"),
+                json.optString("firstName"),
+                json.optString("secondName"),
+                json.optString("firstLastName"),
+                json.optString("secondLastName"),
+                json.optString("email"),
+                json.optInt("phone", -1)
+        );
+
+        this.validate();
+    }
+
     @Nonnull
     @Override
     public JSONObject toJSON() {
@@ -24,5 +39,44 @@ public record Client(
                 .put("secondLastName", this.secondLastName)
                 .put("email", this.email)
                 .put("phone", this.phone);
+    }
+
+    @Override
+    public void validate(@Nonnull String parentName) throws ValidationException {
+        if (this.rut.isEmpty()) {
+            throw new ValidationException("rut", "Rut cannot be empty.");
+        }
+
+        if (!Util.isValidRut(this.rut)) {
+            throw new ValidationException("rut", "Invalid rut.");
+        }
+
+        if (this.firstName.isEmpty()) {
+            throw new ValidationException("firstName", "First name cannot be empty.");
+        }
+
+        if (this.secondName.isEmpty()) {
+            throw new ValidationException("secondName", "First name cannot be empty.");
+        }
+
+        if (this.firstLastName.isEmpty()) {
+            throw new ValidationException("firstLastName", "First last name cannot be empty.");
+        }
+
+        if (this.secondLastName.isEmpty()) {
+            throw new ValidationException("secondLastName", "First last name cannot be empty.");
+        }
+
+        if (this.email.isEmpty()) {
+            throw new ValidationException("email", "Email cannot be empty.");
+        }
+
+        if (!this.email.matches(Util.EMAIL_REGEX)) {
+            throw new ValidationException("email", "Invalid email.");
+        }
+
+        if (String.valueOf(this.phone).length() != 9) {
+            throw new ValidationException("phone", "Invalid phone number.");
+        }
     }
 }

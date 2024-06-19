@@ -23,6 +23,7 @@ public class Api {
                     );
                     config.router.apiBuilder(() -> registerEndpoints(
                             new BrandsEndpoint(),
+                            new ClientsEndpoint(),
                             new EmployeesSessionsEndpoint(),
                             new PingEndpoint(),
                             new ProductsEndpoint(),

@@ -551,6 +551,54 @@ public class DatabaseConnection implements AutoCloseable {
         ) : null;
     }
 
+    @Nullable
+    public Client getClient(@Nonnull String rut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "SELECT * FROM project.cliente WHERE rut = ?"
+        );
+        query.setString(1, rut);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new Client(
+                result.getString("rut"),
+                result.getString("nombre_primero"),
+                result.getString("nombre_segundo"),
+                result.getString("nombre_ap_paterno"),
+                result.getString("nombre_ap_materno"),
+                result.getString("email"),
+                result.getInt("telefono")
+        ) : null;
+    }
+
+    public boolean doesClientExist(@Nonnull Client client) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "SELECT 1 FROM project.cliente WHERE rut = ? OR email = ? OR telefono = ?"
+        );
+        query.setString(1, client.rut());
+        query.setString(2, client.email());
+        query.setInt(3, client.phone());
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
+    }
+
+    public void insertClient(@Nonnull Client client) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "INSERT INTO project.cliente VALUES (?, ?, ?, ?, ?, ?, ?)"
+        );
+        query.setString(1, client.rut());
+        query.setString(2, client.firstName());
+        query.setString(3, client.secondName());
+        query.setString(4, client.firstLastName());
+        query.setString(5, client.secondLastName());
+        query.setString(6, client.email());
+        query.setInt(7, client.phone());
+
+        query.executeUpdate();
+    }
+
     @Override
     public void close() throws SQLException {
         this.connection.close();
