@@ -4,6 +4,8 @@ import io.javalin.http.Context;
 import io.javalin.http.HandlerType;
 import io.javalin.http.Header;
 import io.javalin.http.HttpStatus;
+import jakarta.annotation.Nullable;
+import org.dbuniproject.api.SessionTokenManager;
 import org.json.JSONObject;
 
 import java.time.LocalDateTime;
@@ -36,6 +38,11 @@ public abstract class Endpoint {
             // check if valid json
             ctx.bodyAsClass(JSONObject.class);
         }
+    }
+
+    protected static @Nullable SessionTokenManager.Token getSessionToken(Context ctx) {
+        final String token = ctx.header(Header.AUTHORIZATION);
+        return token != null ? SessionTokenManager.getSessionToken(token) : null;
     }
 
     public interface GetMethod {

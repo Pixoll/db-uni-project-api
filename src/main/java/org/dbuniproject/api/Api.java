@@ -12,6 +12,8 @@ public class Api {
     public static final Dotenv DOTENV = Dotenv.load();
 
     public static void main(String[] args) {
+        SessionTokenManager.loadSessionTokens();
+
         Javalin.create(config -> {
                     config.router.contextPath = "/api/v1";
                     config.router.ignoreTrailingSlashes = true;
@@ -20,6 +22,7 @@ public class Api {
                     );
                     config.router.apiBuilder(() -> registerEndpoints(
                             new BrandsEndpoint(),
+                            new EmployeesSessionsEndpoint(),
                             new PingEndpoint(),
                             new ProductsEndpoint(),
                             new ProductsSizesEndpoint(),

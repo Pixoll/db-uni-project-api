@@ -3,6 +3,7 @@ package org.dbuniproject.api.db;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import org.dbuniproject.api.Api;
+import org.dbuniproject.api.SessionTokenManager;
 import org.dbuniproject.api.db.structures.Region;
 import org.json.JSONObject;
 
@@ -473,6 +474,25 @@ public class DatabaseConnection implements AutoCloseable {
                 .put("addressNumber", result.getShort("addressNumber"))
                 .put("commune", result.getString("commune"))
                 : null;
+    }
+
+    @Nullable
+    public EmployeeCredentials getEmployeeCredentials(
+            @Nonnull String email,
+            @Nonnull SessionTokenManager.Token.Type type
+    ) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(type == SessionTokenManager.Token.Type.CASHIER
+                ? "SELECT contraseña AS password, salt FROM project.vendedor WHERE email = ?"
+                : "SELECT contraseña AS password, salt FROM project.gerente WHERE email = ?"
+        );
+        query.setString(1, email);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new EmployeeCredentials(
+                result.getString("password"),
+                result.getString("salt")
+        ) : null;
     }
 
     @Override
