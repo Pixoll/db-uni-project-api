@@ -349,7 +349,7 @@ public class DatabaseConnection implements AutoCloseable {
                     .put("sku", result.getLong("sku"))
                     .put("name", result.getString("name"))
                     .put("brand", result.getString("brand"))
-                    .put("color", result.getInt("color"))
+                    .put("color", "#" + Integer.toHexString(result.getInt("color")))
                     .put("price", result.getInt("price"))
                     .put("available", result.getBoolean("available"))
             );
@@ -393,7 +393,7 @@ public class DatabaseConnection implements AutoCloseable {
                     .put("sku", result.getLong("sku"))
                     .put("name", result.getString("name"))
                     .put("description", result.getString("description"))
-                    .put("color", result.getInt("color"))
+                    .put("color", "#" + Integer.toHexString(result.getInt("color")))
                     .put("price", result.getInt("price"))
                     .put("type", result.getString("type"))
                     .put("size", result.getString("size"))
@@ -435,7 +435,7 @@ public class DatabaseConnection implements AutoCloseable {
                 .put("brand", result.getString("brand"))
                 .put("type", result.getString("type"))
                 .put("size", result.getString("size"))
-                .put("color", result.getInt("color"))
+                .put("color", "#" + Integer.toHexString(result.getInt("color")))
                 .put("price", result.getInt("price"))
                 : null;
     }
