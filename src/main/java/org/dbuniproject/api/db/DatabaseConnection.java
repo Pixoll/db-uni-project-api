@@ -4,6 +4,7 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import org.dbuniproject.api.Api;
 import org.dbuniproject.api.SessionTokenManager;
+import org.dbuniproject.api.Util;
 import org.dbuniproject.api.db.structures.Client;
 import org.dbuniproject.api.db.structures.EmployeeCredentials;
 import org.dbuniproject.api.db.structures.Region;
@@ -221,6 +222,20 @@ public class DatabaseConnection implements AutoCloseable {
         query.executeUpdate();
     }
 
+    public ArrayList<String> getProductColors() throws SQLException {
+        final ResultSet result = connection.createStatement().executeQuery(
+                "SELECT DISTINCT color FROM project.producto ORDER BY color"
+        );
+
+        final ArrayList<String> colors = new ArrayList<>();
+
+        while (result.next()) {
+            colors.add(Util.intColorToHexString(result.getInt("color")));
+        }
+
+        return colors;
+    }
+
     public ArrayList<JSONObject> getProducts(
             @Nullable String name,
             @Nonnull List<Integer> types,
@@ -349,7 +364,7 @@ public class DatabaseConnection implements AutoCloseable {
                     .put("sku", result.getLong("sku"))
                     .put("name", result.getString("name"))
                     .put("brand", result.getString("brand"))
-                    .put("color", "#" + Integer.toHexString(result.getInt("color")))
+                    .put("color", Util.intColorToHexString(result.getInt("color")))
                     .put("price", result.getInt("price"))
                     .put("available", result.getBoolean("available"))
             );
@@ -393,7 +408,7 @@ public class DatabaseConnection implements AutoCloseable {
                     .put("sku", result.getLong("sku"))
                     .put("name", result.getString("name"))
                     .put("description", result.getString("description"))
-                    .put("color", "#" + Integer.toHexString(result.getInt("color")))
+                    .put("color", Util.intColorToHexString(result.getInt("color")))
                     .put("price", result.getInt("price"))
                     .put("type", result.getString("type"))
                     .put("size", result.getString("size"))
@@ -435,7 +450,7 @@ public class DatabaseConnection implements AutoCloseable {
                 .put("brand", result.getString("brand"))
                 .put("type", result.getString("type"))
                 .put("size", result.getString("size"))
-                .put("color", "#" + Integer.toHexString(result.getInt("color")))
+                .put("color", Util.intColorToHexString(result.getInt("color")))
                 .put("price", result.getInt("price"))
                 : null;
     }

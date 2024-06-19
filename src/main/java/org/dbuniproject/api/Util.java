@@ -91,6 +91,11 @@ public class Util {
         return expectedVerificationDigit.equals(verificationDigit);
     }
 
+    public static String intColorToHexString(int color) {
+        final String hex = Integer.toHexString(color);
+        return "#" + "0".repeat(6 - hex.length()) + hex;
+    }
+
     private static @Nullable String calculateVerificationCode(String digits) {
         if (Integer.parseInt(digits) < 1e6) return null;
 

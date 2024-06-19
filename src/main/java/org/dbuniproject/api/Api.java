@@ -26,6 +26,7 @@ public class Api {
                             new ClientsEndpoint(),
                             new EmployeesSessionsEndpoint(),
                             new PingEndpoint(),
+                            new ProductsColorsEndpoint(),
                             new ProductsEndpoint(),
                             new ProductsSizesEndpoint(),
                             new ProductsStocksEndpoint(),
