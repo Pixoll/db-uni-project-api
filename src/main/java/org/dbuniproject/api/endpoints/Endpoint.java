@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import io.javalin.http.HandlerType;
 import io.javalin.http.Header;
 import io.javalin.http.HttpStatus;
+import org.json.JSONObject;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,12 +24,17 @@ public abstract class Endpoint {
 
         final HandlerType method = ctx.method();
         System.out.println("[" + now + "] " + method.name() + " " + ctx.matchedPath()
-                + "\nbody: " + ctx.body()
-                + "\nquery: " + ctx.queryString()
+                           + "\nbody: " + ctx.body()
+                           + "\nquery: " + ctx.queryString()
         );
 
-        if (method == HandlerType.POST && !Objects.equals(ctx.header(Header.CONTENT_TYPE), "application/json")) {
-            throw new EndpointException(HttpStatus.BAD_REQUEST, "Content-Type header must be 'application/json'.");
+        if (method == HandlerType.POST) {
+            if (!Objects.equals(ctx.header(Header.CONTENT_TYPE), "application/json")) {
+                throw new EndpointException(HttpStatus.BAD_REQUEST, "Content-Type header must be 'application/json'.");
+            }
+
+            // check if valid json
+            ctx.bodyAsClass(JSONObject.class);
         }
     }
 
