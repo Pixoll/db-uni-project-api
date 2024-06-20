@@ -48,7 +48,7 @@ public class EmployeesSessionsEndpoint extends Endpoint implements Endpoint.Post
             }
 
             ctx.status(HttpStatus.OK).json(new JSONObject()
-                    .put("session_token", SessionTokenManager.generateSessionToken(type, rut))
+                    .put("session_token", SessionTokenManager.generateSessionToken(type, rut).token())
             );
         } catch (SQLException e) {
             throw new RuntimeException(e);
