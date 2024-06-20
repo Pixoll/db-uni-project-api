@@ -458,11 +458,32 @@ public class DatabaseConnection implements AutoCloseable {
                 : null;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean doesProductExist(long sku) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(
                 "SELECT 1 FROM project.producto WHERE sku = ?"
         );
         query.setLong(1, sku);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
+    }
+
+    public boolean isProductSoldAtEmployeeStore(long sku, @Nonnull String rut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT 1
+                    FROM project.producto AS P
+                    INNER JOIN project.stock AS ST ON P.sku = ST.sku_producto
+                    INNER JOIN project.sucursal AS SU ON SU.id = ST.id_sucursal
+                    INNER JOIN (
+                        SELECT rut, id_sucursal FROM project.gerente
+                        UNION SELECT rut, id_sucursal FROM project.vendedor
+                    ) AS E ON SU.id = E.id_sucursal
+                    WHERE P.eliminado = FALSE AND P.sku = ? AND E.rut = ?"""
+        );
+        query.setLong(1, sku);
+        query.setString(2, rut);
 
         final ResultSet result = query.executeQuery();
 
