@@ -19,7 +19,7 @@ public record Sale(
         @Nonnull String cashierRut,
         @Nonnull String clientRut,
         @Nonnull Type type,
-        @Nonnull ArrayList<ProductSale> productSales
+        @Nonnull ArrayList<ProductSale> products
 ) implements JSONEncodable, Validatable {
     public Sale(JSONObject json) throws ValidationException {
         this(
@@ -28,7 +28,7 @@ public record Sale(
                 json.optString("cashierRut"),
                 json.optString("clientRut"),
                 Objects.requireNonNullElse(Util.stringToEnum(json.optString("type"), Type.class), Type.INVALID),
-                Util.jsonArrayToList(json.optJSONArray("productSales", new JSONArray()), ProductSale.class)
+                Util.jsonArrayToList(json.optJSONArray("products", new JSONArray()), ProductSale.class)
         );
 
         this.validate();
@@ -42,7 +42,7 @@ public record Sale(
                 .put("date", this.date)
                 .put("cashierRut", this.cashierRut)
                 .put("clientRut", this.clientRut)
-                .put("productSales", this.productSales.stream().map(ProductSale::toJSON));
+                .put("products", this.products.stream().map(ProductSale::toJSON));
     }
 
     @Override
@@ -71,20 +71,20 @@ public record Sale(
             throw new ValidationException("type", "Missing or invalid sale type.");
         }
 
-        if (this.productSales.isEmpty()) {
-            throw new ValidationException("productSales", "Product sales is empty.");
+        if (this.products.isEmpty()) {
+            throw new ValidationException("products", "Products is empty.");
         }
 
-        for (int i = 0; i < this.productSales.size(); i++) {
-            final ProductSale productSale = this.productSales.get(i);
-            productSale.validate("productSale[" + i + "]");
+        for (int i = 0; i < this.products.size(); i++) {
+            final ProductSale productSale = this.products.get(i);
+            productSale.validate("products[" + i + "]");
 
-            final long sku = productSale.productSku();
+            final long sku = productSale.sku();
 
             try (final DatabaseConnection db = new DatabaseConnection()) {
-                if (!db.isProductSoldAtEmployeeStore(productSale.productSku(), this.cashierRut)) {
+                if (!db.isProductSoldAtEmployeeStore(productSale.sku(), this.cashierRut)) {
                     throw new ValidationException(
-                            "productSale[" + i + "]",
+                            "products[" + i + "]",
                             "Product with sku " + sku + " not sold at " + this.cashierRut + "'s store."
                     );
                 }

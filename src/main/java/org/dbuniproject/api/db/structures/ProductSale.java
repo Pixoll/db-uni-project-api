@@ -8,17 +8,17 @@ import org.json.JSONObject;
 
 import java.sql.SQLException;
 
-public record ProductSale(long productSku, int quantity) implements JSONEncodable, Validatable {
+public record ProductSale(long sku, int quantity) implements JSONEncodable, Validatable {
     @SuppressWarnings("unused")
     public ProductSale(JSONObject json) {
-        this(json.optLong("productSku", -1), json.optInt("quantity", -1));
+        this(json.optLong("sku", -1), json.optInt("quantity", -1));
     }
 
     @Nonnull
     @Override
     public JSONObject toJSON() {
         return new JSONObject()
-                .put("productSku", this.productSku)
+                .put("sku", this.sku)
                 .put("quantity", this.quantity);
     }
 
@@ -26,15 +26,15 @@ public record ProductSale(long productSku, int quantity) implements JSONEncodabl
     public void validate(@NotNull String parentName) throws ValidationException {
         final String keyPrefix = !parentName.isEmpty() ? parentName + "." : "";
 
-        if (this.productSku == -1) {
-            throw new ValidationException(keyPrefix + "productSku", "Product sku is empty.");
+        if (this.sku == -1) {
+            throw new ValidationException(keyPrefix + "sku", "Product sku is empty.");
         }
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
-            if (!db.doesProductExist(this.productSku)) {
+            if (!db.doesProductExist(this.sku)) {
                 throw new ValidationException(
-                        keyPrefix + "productSku",
-                        "Product with sku " + this.productSku + " does not exist"
+                        keyPrefix + "sku",
+                        "Product with sku " + this.sku + " does not exist"
                 );
             }
         } catch (SQLException e) {
