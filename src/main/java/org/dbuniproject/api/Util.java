@@ -4,6 +4,7 @@ import com.google.common.hash.Hashing;
 import io.javalin.http.Context;
 import jakarta.annotation.Nullable;
 import org.intellij.lang.annotations.Language;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -94,6 +95,26 @@ public class Util {
     public static String intColorToHexString(int color) {
         final String hex = Integer.toHexString(color);
         return "#" + "0".repeat(6 - hex.length()) + hex;
+    }
+
+    public static <T> ArrayList<T> jsonArrayToList(JSONArray jsonArray, Class<T> of) {
+        final ArrayList<T> list = new ArrayList<>();
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            final Object obj = jsonArray.get(i);
+
+            try {
+                list.add(of.cast(obj));
+            } catch (ClassCastException e) {
+                try {
+                    list.add(of.getDeclaredConstructor(obj.getClass()).newInstance(obj));
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
+
+        return list;
     }
 
     private static @Nullable String calculateVerificationCode(String digits) {

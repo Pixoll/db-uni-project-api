@@ -599,6 +599,17 @@ public class DatabaseConnection implements AutoCloseable {
         return result.next();
     }
 
+    public boolean doesClientExist(@Nonnull String rut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "SELECT 1 FROM project.cliente WHERE rut = ?"
+        );
+        query.setString(1, rut);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
+    }
+
     public void insertClient(@Nonnull Client client) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(
                 "INSERT INTO project.cliente VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -612,6 +623,17 @@ public class DatabaseConnection implements AutoCloseable {
         query.setInt(7, client.phone());
 
         query.executeUpdate();
+    }
+
+    public boolean doesCashierExist(@Nonnull String rut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "SELECT 1 FROM project.vendedor WHERE rut = ?"
+        );
+        query.setString(1, rut);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
     }
 
     @Override
