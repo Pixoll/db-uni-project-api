@@ -49,7 +49,7 @@ public class ProductsSizesEndpoint extends Endpoint implements Endpoint.GetMetho
     @Override
     public void post(Context ctx) throws EndpointException {
         final SessionTokenManager.Token sessionToken = getSessionToken(ctx);
-        if (sessionToken == null || sessionToken.isManager()) {
+        if (sessionToken == null || !sessionToken.isManager()) {
             throw new EndpointException(HttpStatus.UNAUTHORIZED, "Not a manager.");
         }
 
