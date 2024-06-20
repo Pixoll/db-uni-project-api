@@ -373,34 +373,32 @@ public class DatabaseConnection implements AutoCloseable {
         return products;
     }
 
-    public ArrayList<JSONObject> getProductsByEmployee(
-            @Nonnull String rut,
-            @Nonnull SessionTokenManager.Token.Type type
-    ) throws SQLException {
-        final String employeeType = type == SessionTokenManager.Token.Type.MANAGER ? "gerente" : "vendedor";
-        final PreparedStatement query = this.connection.prepareStatement(
-                """
-                        SELECT
-                            P.sku,
-                            P.nombre AS name,
-                            P.descripcion AS description,
-                            P.color AS color,
-                            project.aplicar_iva(P.precio_sin_iva) AS price,
-                            TI.nombre AS type,
-                            TA.nombre AS size,
-                            M.nombre AS brand,
-                            ST.actual AS stockForSale,
-                            ST.bodega AS stockInStorage,
-                            ST.min AS minStock,
-                            ST.max AS maxStock
-                            FROM project.producto AS P
-                            INNER JOIN project.tipo AS TI ON TI.id = P.id_tipo
-                            INNER JOIN project.talla AS TA ON TA.id = P.id_talla
-                            INNER JOIN project.marca AS M ON M.id = P.id_marca
-                            INNER JOIN project.stock AS ST ON P.sku = ST.sku_producto
-                            INNER JOIN project.sucursal AS SU ON SU.id = ST.id_sucursal
-                            INNER JOIN project.""" + employeeType + " AS E ON SU.id = E.id_sucursal"
-                + " WHERE P.eliminado = FALSE AND E.rut = ?"
+    public ArrayList<JSONObject> getProductsByEmployee(@Nonnull String rut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT
+                    P.sku,
+                    P.nombre AS name,
+                    P.descripcion AS description,
+                    P.color AS color,
+                    project.aplicar_iva(P.precio_sin_iva) AS price,
+                    TI.nombre AS type,
+                    TA.nombre AS size,
+                    M.nombre AS brand,
+                    ST.actual AS stockForSale,
+                    ST.bodega AS stockInStorage,
+                    ST.min AS minStock,
+                    ST.max AS maxStock
+                    FROM project.producto AS P
+                    INNER JOIN project.tipo AS TI ON TI.id = P.id_tipo
+                    INNER JOIN project.talla AS TA ON TA.id = P.id_talla
+                    INNER JOIN project.marca AS M ON M.id = P.id_marca
+                    INNER JOIN project.stock AS ST ON P.sku = ST.sku_producto
+                    INNER JOIN project.sucursal AS SU ON SU.id = ST.id_sucursal
+                    INNER JOIN (
+                        SELECT rut, id_sucursal FROM project.gerente
+                        UNION SELECT rut, id_sucursal FROM project.vendedor
+                    ) AS E ON SU.id = E.id_sucursal
+                    WHERE P.eliminado = FALSE AND E.rut = ?"""
         );
         query.setString(1, rut);
 

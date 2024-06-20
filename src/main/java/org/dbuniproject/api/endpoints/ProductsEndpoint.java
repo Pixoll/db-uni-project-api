@@ -20,7 +20,7 @@ public class ProductsEndpoint extends Endpoint implements Endpoint.GetMethod {
         final SessionTokenManager.Token sessionToken = getSessionToken(ctx);
         if (sessionToken != null) {
             try (final DatabaseConnection db = new DatabaseConnection()) {
-                ctx.status(HttpStatus.OK).json(db.getProductsByEmployee(sessionToken.rut(), sessionToken.type()));
+                ctx.status(HttpStatus.OK).json(db.getProductsByEmployee(sessionToken.rut()));
                 return;
             } catch (SQLException e) {
                 throw new RuntimeException(e);
