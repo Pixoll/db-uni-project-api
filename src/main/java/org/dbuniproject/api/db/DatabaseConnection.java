@@ -5,9 +5,7 @@ import jakarta.annotation.Nullable;
 import org.dbuniproject.api.Api;
 import org.dbuniproject.api.SessionTokenManager;
 import org.dbuniproject.api.Util;
-import org.dbuniproject.api.db.structures.Client;
-import org.dbuniproject.api.db.structures.EmployeeCredentials;
-import org.dbuniproject.api.db.structures.Region;
+import org.dbuniproject.api.db.structures.*;
 import org.json.JSONObject;
 
 import java.sql.*;
@@ -517,6 +515,21 @@ public class DatabaseConnection implements AutoCloseable {
         return stocks;
     }
 
+    public int getProductStock(long sku, @Nonnull String cashierRut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT ST.actual + ST.bodega AS stock
+                    FROM project.vendedor AS V
+                    INNER JOIN project.stock AS ST on ST.id_sucursal = V.id_sucursal
+                    WHERE ST.sku_producto = ? AND V.rut = ?"""
+        );
+        query.setLong(1, sku);
+        query.setString(2, cashierRut);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? result.getInt("stock") : -1;
+    }
+
     public ArrayList<JSONObject> getStores() throws SQLException {
         final ResultSet result = this.connection.createStatement().executeQuery("""
                 SELECT
@@ -658,6 +671,49 @@ public class DatabaseConnection implements AutoCloseable {
         final ResultSet result = query.executeQuery();
 
         return result.next();
+    }
+
+    public long insertSale(@Nonnull Sale sale) throws SQLException {
+        final int productsAmount = sale.products().size();
+        final String products = "(project.id_ultima_venta(), ?, ?),\n".repeat(productsAmount)
+                .replaceFirst(",\n$", "");
+
+        final PreparedStatement query = this.connection.prepareStatement(
+                """
+                        INSERT INTO project.Venta (fecha, rut_vendedor, rut_cliente) VALUES
+                            (CURRENT_TIMESTAMP, ?, ?);
+                        
+                        INSERT INTO project.VentaDeProducto VALUES
+                        """ + products + ";\n" + """
+                        INSERT INTO project.Comprobante VALUES (
+                            project.id_ultima_venta(),
+                            ?::project.tipo_comprobante,
+                            project.total_venta(project.id_ultima_venta())
+                        );
+                        
+                        SELECT project.id_ultima_venta();"""
+        );
+        query.setString(1, sale.cashierRut());
+        query.setString(2, sale.clientRut());
+
+        for (int i = 0; i < productsAmount; i++) {
+            final ProductSale productSale = sale.products().get(i);
+            query.setLong(i * 2 + 3, productSale.sku());
+            query.setInt(i * 2 + 4, productSale.quantity());
+        }
+
+        query.setString(productsAmount * 2 + 3, sale.type().toString());
+
+        boolean hasResultSet = query.execute();
+
+        while (!hasResultSet && query.getUpdateCount() != -1) {
+            hasResultSet = query.getMoreResults();
+        }
+
+        final ResultSet result = query.getResultSet();
+        result.next();
+
+        return result.getLong(1);
     }
 
     @Override

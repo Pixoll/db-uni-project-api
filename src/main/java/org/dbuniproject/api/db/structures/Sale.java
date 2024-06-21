@@ -21,11 +21,11 @@ public record Sale(
         @Nonnull Type type,
         @Nonnull ArrayList<ProductSale> products
 ) implements JSONEncodable, Validatable {
-    public Sale(JSONObject json) throws ValidationException {
+    public Sale(JSONObject json, @Nonnull String cashierRut) throws ValidationException {
         this(
                 -1,
                 new Date(),
-                json.optString("cashierRut"),
+                cashierRut,
                 json.optString("clientRut"),
                 Objects.requireNonNullElse(Util.stringToEnum(json.optString("type"), Type.class), Type.INVALID),
                 Util.jsonArrayToList(json.optJSONArray("products", new JSONArray()), ProductSale.class)
@@ -68,7 +68,7 @@ public record Sale(
         }
 
         if (this.type == Type.INVALID) {
-            throw new ValidationException("type", "Missing or invalid sale type.");
+            throw new ValidationException("type", "Missing or invalid receipt type.");
         }
 
         if (this.products.isEmpty()) {
@@ -86,6 +86,23 @@ public record Sale(
                     throw new ValidationException(
                             "products[" + i + "]",
                             "Product with sku " + sku + " not sold at " + this.cashierRut + "'s store."
+                    );
+                }
+
+                final int currentStock = db.getProductStock(productSale.sku(), this.cashierRut);
+                if (currentStock == -1) {
+                    // Shouldn't happen, just in case
+                    throw new ValidationException(
+                            "products[" + i + "]",
+                            "Product with sku " + sku + " not sold at " + this.cashierRut + "'s store."
+                    );
+                }
+
+                if (currentStock - productSale.quantity() < 0) {
+                    throw new ValidationException(
+                            "products[" + i + "]",
+                            "Can't sell " + productSale.quantity() + " of product " + sku
+                            + ". Current stock is " + currentStock + "."
                     );
                 }
             } catch (SQLException e) {
