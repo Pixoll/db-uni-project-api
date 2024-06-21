@@ -6,11 +6,13 @@ import org.dbuniproject.api.Api;
 import org.dbuniproject.api.SessionTokenManager;
 import org.dbuniproject.api.Util;
 import org.dbuniproject.api.db.structures.*;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DatabaseConnection implements AutoCloseable {
@@ -673,6 +675,144 @@ public class DatabaseConnection implements AutoCloseable {
         return result.next();
     }
 
+    public ArrayList<Sale> getSalesInStore(@Nonnull String managerRut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                -- noinspection SqlAggregates
+                SELECT
+                    S.id,
+                    S.fecha AS date,
+                    S.rut_vendedor AS cashierrut,
+                    S.rut_cliente AS clientrut,
+                    C.tipo AS type,
+                    C.total,
+                    (SELECT json_agg(json_build_object(
+                        'sku', VP.sku_producto, 'quantity', VP.cantidad
+                    )) FROM project.ventadeproducto AS VP WHERE VP.id_venta = S.id) AS products
+                    FROM project.gerente AS G
+                    INNER JOIN project.vendedor AS V ON V.id_sucursal = G.id_sucursal
+                    INNER JOIN project.venta AS S ON S.rut_vendedor = V.rut
+                    INNER JOIN project.comprobante AS C ON C.id = S.id
+                    WHERE G.rut = ?
+                    GROUP BY S.id, C.id
+                    ORDER BY S.fecha;"""
+        );
+        query.setString(1, managerRut);
+
+        final ResultSet result = query.executeQuery();
+
+        final ArrayList<Sale> sales = new ArrayList<>();
+
+        while (result.next()) {
+            final JSONArray jsonProducts = new JSONArray(result.getString("products"));
+            final ArrayList<ProductSale> products = new ArrayList<>();
+
+            for (final Object json : jsonProducts) {
+                products.add(new ProductSale((JSONObject) json));
+            }
+
+            sales.add(new Sale(
+                    result.getLong("id"),
+                    result.getTimestamp("date"),
+                    result.getString("cashierRut"),
+                    result.getString("clientRut"),
+                    Objects.requireNonNull(Util.stringToEnum(result.getString("type"), Sale.Type.class)),
+                    result.getInt("total"),
+                    products
+            ));
+        }
+
+        return sales;
+    }
+
+    public ArrayList<Sale> getSalesOfCashier(@Nonnull String cashierRut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                -- noinspection SqlAggregates
+                SELECT
+                    S.id,
+                    S.fecha AS date,
+                    S.rut_vendedor AS cashierrut,
+                    S.rut_cliente AS clientrut,
+                    C.tipo AS type,
+                    C.total,
+                    (SELECT json_agg(json_build_object(
+                        'sku', VP.sku_producto, 'quantity', VP.cantidad
+                    )) FROM project.ventadeproducto AS VP WHERE VP.id_venta = S.id) AS products
+                    FROM project.vendedor AS V
+                    INNER JOIN project.venta AS S ON S.rut_vendedor = V.rut
+                    INNER JOIN project.comprobante AS C ON C.id = S.id
+                    WHERE V.rut = ?
+                    GROUP BY S.id, C.id
+                    ORDER BY S.fecha;"""
+        );
+        query.setString(1, cashierRut);
+
+        final ResultSet result = query.executeQuery();
+
+        final ArrayList<Sale> sales = new ArrayList<>();
+
+        while (result.next()) {
+            final JSONArray jsonProducts = new JSONArray(result.getString("products"));
+            final ArrayList<ProductSale> products = new ArrayList<>();
+
+            for (final Object json : jsonProducts) {
+                products.add(new ProductSale((JSONObject) json));
+            }
+
+            sales.add(new Sale(
+                    result.getLong("id"),
+                    result.getTimestamp("date"),
+                    result.getString("cashierRut"),
+                    result.getString("clientRut"),
+                    Objects.requireNonNull(Util.stringToEnum(result.getString("type"), Sale.Type.class)),
+                    result.getInt("total"),
+                    products
+            ));
+        }
+
+        return sales;
+    }
+
+    @Nullable
+    public Sale getSale(long id) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT
+                    V.fecha AS date,
+                    V.rut_vendedor AS cashierrut,
+                    V.rut_cliente AS clientrut,
+                    C.tipo AS type,
+                    C.total,
+                    (SELECT json_agg(json_build_object(
+                        'sku', VP.sku_producto, 'quantity', VP.cantidad
+                    )) FROM project.ventadeproducto AS VP WHERE VP.id_venta = V.id) AS products
+                    FROM project.venta AS V
+                    INNER JOIN project.comprobante AS C ON C.id = V.id
+                    WHERE V.id = ?
+                    GROUP BY V.id, C.id"""
+        );
+        query.setLong(1, id);
+
+        final ResultSet result = query.executeQuery();
+
+        if (!result.next()) return null;
+
+        final JSONArray jsonProducts = new JSONArray(result.getString("products"));
+        final ArrayList<ProductSale> products = new ArrayList<>();
+
+        for (final Object json : jsonProducts) {
+            products.add(new ProductSale((JSONObject) json));
+        }
+
+        return new Sale(
+                id,
+                result.getTimestamp("date"),
+                result.getString("cashierRut"),
+                result.getString("clientRut"),
+                Objects.requireNonNull(Util.stringToEnum(result.getString("type"), Sale.Type.class)),
+                result.getInt("total"),
+                products
+        );
+    }
+
     public long insertSale(@Nonnull Sale sale) throws SQLException {
         final int productsAmount = sale.products().size();
         final String products = "(project.id_ultima_venta(), ?, ?),\n".repeat(productsAmount)
@@ -682,7 +822,6 @@ public class DatabaseConnection implements AutoCloseable {
                 """
                         INSERT INTO project.Venta (fecha, rut_vendedor, rut_cliente) VALUES
                             (CURRENT_TIMESTAMP, ?, ?);
-                        
                         INSERT INTO project.VentaDeProducto VALUES
                         """ + products + ";\n" + """
                         INSERT INTO project.Comprobante VALUES (
@@ -690,7 +829,6 @@ public class DatabaseConnection implements AutoCloseable {
                             ?::project.tipo_comprobante,
                             project.total_venta(project.id_ultima_venta())
                         );
-                        
                         SELECT project.id_ultima_venta();"""
         );
         query.setString(1, sale.cashierRut());

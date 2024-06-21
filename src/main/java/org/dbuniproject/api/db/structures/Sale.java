@@ -19,6 +19,7 @@ public record Sale(
         @Nonnull String cashierRut,
         @Nonnull String clientRut,
         @Nonnull Type type,
+        int total,
         @Nonnull ArrayList<ProductSale> products
 ) implements JSONEncodable, Validatable {
     public Sale(JSONObject json, @Nonnull String cashierRut) throws ValidationException {
@@ -28,6 +29,7 @@ public record Sale(
                 cashierRut,
                 json.optString("clientRut"),
                 Objects.requireNonNullElse(Util.stringToEnum(json.optString("type"), Type.class), Type.INVALID),
+                -1,
                 Util.jsonArrayToList(json.optJSONArray("products", new JSONArray()), ProductSale.class)
         );
 
@@ -42,7 +44,8 @@ public record Sale(
                 .put("date", this.date)
                 .put("cashierRut", this.cashierRut)
                 .put("clientRut", this.clientRut)
-                .put("products", this.products.stream().map(ProductSale::toJSON));
+                .put("total", this.total)
+                .put("products", this.products.stream().map(ProductSale::toJSON).toList());
     }
 
     @Override
@@ -112,7 +115,7 @@ public record Sale(
     }
 
     public enum Type {
-        RECEIPT("comprobante"),
+        RECEIPT("boleta"),
         INVOICE("factura"),
         INVALID("");
 
