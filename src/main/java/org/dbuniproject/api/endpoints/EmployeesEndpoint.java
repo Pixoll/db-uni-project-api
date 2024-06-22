@@ -30,7 +30,7 @@ public class EmployeesEndpoint extends Endpoint implements Endpoint.GetMethod, E
                 if (cashier == null) {
                     throw new EndpointException(
                             HttpStatus.NOT_FOUND,
-                            "Cashier with rut " + cashierRut + " does not " + "exist."
+                            "Cashier with rut " + cashierRut + " does not exist or was fired."
                     );
                 }
 

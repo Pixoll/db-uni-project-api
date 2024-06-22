@@ -3,7 +3,6 @@ package org.dbuniproject.api.db;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import org.dbuniproject.api.Api;
-import org.dbuniproject.api.SessionTokenManager;
 import org.dbuniproject.api.Util;
 import org.dbuniproject.api.db.structures.*;
 import org.json.JSONArray;
@@ -731,13 +730,13 @@ public class DatabaseConnection implements AutoCloseable {
     @Nullable
     public EmployeeCredentials getEmployeeCredentials(@Nonnull String rut) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement("""
-            SELECT
-                contraseña AS password,
-                salt
-                FROM (SELECT rut, contraseña, salt FROM project.gerente
-                    UNION SELECT rut, contraseña, salt FROM project.vendedor WHERE despedido = FALSE
-                ) AS E
-                WHERE E.rut = ?"""
+                SELECT
+                    contraseña AS password,
+                    salt
+                    FROM (SELECT rut, contraseña, salt FROM project.gerente
+                        UNION SELECT rut, contraseña, salt FROM project.vendedor WHERE despedido = FALSE
+                    ) AS E
+                    WHERE E.rut = ?"""
         );
         query.setString(1, rut);
 
@@ -1051,7 +1050,7 @@ public class DatabaseConnection implements AutoCloseable {
                     V.full_time AS fullTime
                     FROM project.gerente AS G
                     INNER JOIN project.vendedor AS V on V.id_sucursal = G.id_sucursal
-                    WHERE G.rut = ?"""
+                    WHERE G.rut = ? AND V.despedido = FALSE"""
         );
         query.setString(1, managerRut);
 
@@ -1092,7 +1091,7 @@ public class DatabaseConnection implements AutoCloseable {
                     telefono AS phone,
                     full_time AS fullTime
                     FROM project.vendedor
-                    WHERE rut = ?"""
+                    WHERE rut = ? AND despedido = FALSE"""
         );
         query.setString(1, cashierRut);
 
