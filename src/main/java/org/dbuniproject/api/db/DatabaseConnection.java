@@ -1155,6 +1155,17 @@ public class DatabaseConnection implements AutoCloseable {
         query.executeUpdate();
     }
 
+    public void updateCashierContract(@Nonnull String rut, boolean fullTime) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "UPDATE project.vendedor SET full_time = ? WHERE rut = ?"
+        );
+        query.setBoolean(1, fullTime);
+        query.setString(2, rut);
+
+        logQuery(query.toString());
+        query.executeUpdate();
+    }
+
     public ArrayList<Supplier> getSuppliers(
             @Nonnull ArrayList<Integer> products,
             @Nonnull ArrayList<Integer> brands,

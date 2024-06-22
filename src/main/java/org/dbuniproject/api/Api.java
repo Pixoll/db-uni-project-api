@@ -22,8 +22,9 @@ public class Api {
                             cors.addRule(CorsPluginConfig.CorsRule::anyHost)
                     );
                     config.router.apiBuilder(() -> registerEndpoints(
-                            new EmployeesEndpoint(),
                             new ClientsEndpoint(),
+                            new EmployeesContractsEndpoint(),
+                            new EmployeesEndpoint(),
                             new EmployeesSessionsEndpoint(),
                             new PingEndpoint(),
                             new ProductsBrandsEndpoint(),
