@@ -9,9 +9,9 @@ import org.json.JSONObject;
 
 import java.sql.SQLException;
 
-public class BrandsEndpoint extends Endpoint implements Endpoint.GetMethod, Endpoint.PostMethod {
-    public BrandsEndpoint() {
-        super("/brands");
+public class ProductsBrandsEndpoint extends Endpoint implements Endpoint.GetMethod, Endpoint.PostMethod {
+    public ProductsBrandsEndpoint() {
+        super("/products/brands");
     }
 
     @Override
