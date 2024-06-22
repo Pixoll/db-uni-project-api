@@ -766,6 +766,28 @@ public class DatabaseConnection implements AutoCloseable {
         return result.next();
     }
 
+    public boolean isCashierFired(@Nonnull String rut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "SELECT despedido FROM project.vendedor WHERE rut = ?"
+        );
+        query.setString(1, rut);
+
+        logQuery(query.toString());
+        final ResultSet result = query.executeQuery();
+
+        return result.next() && result.getBoolean("despedido");
+    }
+
+    public void markCashierAsFired(@Nonnull String rut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "UPDATE project.vendedor SET despedido = TRUE WHERE rut = ?"
+        );
+        query.setString(1, rut);
+
+        logQuery(query.toString());
+        query.executeUpdate();
+    }
+
     @Nullable
     public Client getClient(@Nonnull String rut) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(

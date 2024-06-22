@@ -11,7 +11,9 @@ import org.json.JSONObject;
 
 import java.sql.SQLException;
 
-public class EmployeesEndpoint extends Endpoint implements Endpoint.GetMethod, Endpoint.PostMethod {
+public class EmployeesEndpoint
+        extends Endpoint
+        implements Endpoint.GetMethod, Endpoint.PostMethod, Endpoint.DeleteMethod {
     public EmployeesEndpoint() {
         super("/employees");
     }
@@ -84,6 +86,32 @@ public class EmployeesEndpoint extends Endpoint implements Endpoint.GetMethod, E
             ctx.status(HttpStatus.CREATED).json(new JSONObject()
                     .put("generatedPassword", password)
             );
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void delete(Context ctx) throws EndpointException {
+        final SessionTokenManager.Token sessionToken = getSessionToken(ctx);
+        if (sessionToken == null || !sessionToken.isManager()) {
+            throw new EndpointException(HttpStatus.UNAUTHORIZED, "Not a manager.");
+        }
+
+        final String cashierRut = ctx.queryParam("rut");
+        if (cashierRut == null || cashierRut.isEmpty()) {
+            throw new EndpointException(HttpStatus.BAD_REQUEST, "Expected rut in query.");
+        }
+
+        try (final DatabaseConnection db = new DatabaseConnection()) {
+            if (db.isCashierFired(cashierRut)) {
+                throw new EndpointException(HttpStatus.CONFLICT, "Cashier was already fired.");
+            }
+
+            db.markCashierAsFired(cashierRut);
+            SessionTokenManager.revokeSessionToken(SessionTokenManager.Token.Type.CASHIER, cashierRut);
+
+            ctx.status(HttpStatus.NO_CONTENT);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
