@@ -101,8 +101,10 @@ public class ProductsEndpoint extends Endpoint implements Endpoint.GetMethod, En
         }
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
-            db.insertProduct(product);
-            ctx.status(HttpStatus.CREATED);
+            final long sku = db.insertProduct(product);
+            ctx.status(HttpStatus.CREATED).json(new JSONObject()
+                    .put("sku", sku)
+            );
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
