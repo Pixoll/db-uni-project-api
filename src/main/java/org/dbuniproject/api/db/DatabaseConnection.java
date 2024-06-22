@@ -131,6 +131,16 @@ public class DatabaseConnection implements AutoCloseable {
                 : null;
     }
 
+    public boolean doesProductSizeExist(int id) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("SELECT 1 FROM project.talla WHERE id = ?");
+        query.setInt(1, id);
+
+        logQuery(query.toString());
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
+    }
+
     public void insertProductSize(@Nonnull String name) throws SQLException {
         final PreparedStatement query = connection.prepareStatement("INSERT INTO project.talla (nombre) VALUES (?)");
         query.setString(1, name);
@@ -191,6 +201,16 @@ public class DatabaseConnection implements AutoCloseable {
                 : null;
     }
 
+    public boolean doesProductTypeExist(int id) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("SELECT 1 FROM project.tipo WHERE id = ?");
+        query.setInt(1, id);
+
+        logQuery(query.toString());
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
+    }
+
     public void insertProductType(@Nonnull String name, @Nonnull String description) throws SQLException {
         final PreparedStatement query = connection.prepareStatement(
                 "INSERT INTO project.tipo (nombre, descripcion) VALUES (?, ?)"
@@ -249,6 +269,16 @@ public class DatabaseConnection implements AutoCloseable {
                 .put("id", result.getInt("id"))
                 .put("name", result.getString("nombre"))
                 : null;
+    }
+
+    public boolean doesBrandExist(int id) throws SQLException {
+        final PreparedStatement query = connection.prepareStatement("SELECT 1 FROM project.marca WHERE id = ?");
+        query.setInt(1, id);
+
+        logQuery(query.toString());
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
     }
 
     public void insertBrand(@Nonnull String name) throws SQLException {
@@ -509,6 +539,33 @@ public class DatabaseConnection implements AutoCloseable {
         final ResultSet result = query.executeQuery();
 
         return result.next();
+    }
+
+    public long insertProduct(@Nonnull Product product) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                INSERT INTO project.producto (nombre, descripcion, color, precio_sin_iva, id_tipo, id_talla, id_marca)
+                    VALUES (?, ?, ?, ?, ?, ?, ?);
+                SELECT last_value FROM project.producto_sku_seq;"""
+        );
+        query.setString(1, product.name());
+        query.setString(2, product.description());
+        query.setInt(3, product.color());
+        query.setInt(4, product.priceWithoutTax());
+        query.setInt(5, product.typeId());
+        query.setInt(6, product.sizeId());
+        query.setInt(7, product.brandId());
+
+        logQuery(query.toString());
+        boolean hasResultSet = query.execute();
+
+        while (!hasResultSet && query.getUpdateCount() != -1) {
+            hasResultSet = query.getMoreResults();
+        }
+
+        final ResultSet result = query.getResultSet();
+        result.next();
+
+        return result.getLong(1);
     }
 
     public boolean isProductSoldAtEmployeeStore(long sku, @Nonnull String rut) throws SQLException {
