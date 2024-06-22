@@ -10,6 +10,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -23,12 +25,22 @@ public class DatabaseConnection implements AutoCloseable {
         this.connection = DriverManager.getConnection(POSTGRES_DB_URL);
     }
 
+    private static void logQuery(String query) {
+        final String now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                .replaceAll("T|\\.\\d+$", " ")
+                .stripTrailing();
+
+        System.out.println("[" + now + "] Executing query:\n> " + query);
+    }
+
     public ArrayList<Region> getRegionsWithCommunes() throws SQLException {
-        final ResultSet result = connection.createStatement().executeQuery("""
+        final String sql = """
                 SELECT R.numero AS regionNumber, R.nombre AS regionName, C.id AS communeId, C.nombre AS communeName
                     FROM project.comuna AS C
-                    INNER JOIN project.region AS R ON R.numero = C.region"""
-        );
+                    INNER JOIN project.region AS R ON R.numero = C.region""";
+
+        logQuery(sql);
+        final ResultSet result = connection.createStatement().executeQuery(sql);
 
         final ArrayList<Region> regions = new ArrayList<>();
 
@@ -64,13 +76,16 @@ public class DatabaseConnection implements AutoCloseable {
         final PreparedStatement query = this.connection.prepareStatement("SELECT 1 FROM project.comuna WHERE id = ?");
         query.setShort(1, id);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next();
     }
 
     public ArrayList<JSONObject> getProductSizes() throws SQLException {
-        final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.talla");
+        final String sql = "SELECT * FROM project.talla";
+        logQuery(sql);
+        final ResultSet result = connection.createStatement().executeQuery(sql);
 
         final ArrayList<JSONObject> productSizes = new ArrayList<>();
 
@@ -89,6 +104,7 @@ public class DatabaseConnection implements AutoCloseable {
         final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.talla WHERE id = ?");
         query.setInt(1, id);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next()
@@ -105,6 +121,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, name.toLowerCase());
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next()
@@ -118,11 +135,14 @@ public class DatabaseConnection implements AutoCloseable {
         final PreparedStatement query = connection.prepareStatement("INSERT INTO project.talla (nombre) VALUES (?)");
         query.setString(1, name);
 
+        logQuery(query.toString());
         query.executeUpdate();
     }
 
     public ArrayList<JSONObject> getProductTypes() throws SQLException {
-        final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.tipo");
+        final String sql = "SELECT * FROM project.tipo";
+        logQuery(sql);
+        final ResultSet result = connection.createStatement().executeQuery(sql);
 
         final ArrayList<JSONObject> productTypes = new ArrayList<>();
 
@@ -142,6 +162,7 @@ public class DatabaseConnection implements AutoCloseable {
         final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.tipo WHERE id = ?");
         query.setInt(1, id);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next()
@@ -159,6 +180,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, name.toLowerCase());
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next()
@@ -176,11 +198,14 @@ public class DatabaseConnection implements AutoCloseable {
         query.setString(1, name);
         query.setString(2, description);
 
+        logQuery(query.toString());
         query.executeUpdate();
     }
 
     public ArrayList<JSONObject> getBrands() throws SQLException {
-        final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.marca");
+        final String sql = "SELECT * FROM project.marca";
+        logQuery(sql);
+        final ResultSet result = connection.createStatement().executeQuery(sql);
 
         final ArrayList<JSONObject> brands = new ArrayList<>();
 
@@ -199,6 +224,7 @@ public class DatabaseConnection implements AutoCloseable {
         final PreparedStatement query = connection.prepareStatement("SELECT * FROM project.marca WHERE id = ?");
         query.setInt(1, id);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next()
@@ -215,6 +241,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, name);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next()
@@ -228,13 +255,14 @@ public class DatabaseConnection implements AutoCloseable {
         final PreparedStatement query = connection.prepareStatement("INSERT INTO project.marca (nombre) VALUES (?)");
         query.setString(1, name);
 
+        logQuery(query.toString());
         query.executeUpdate();
     }
 
     public ArrayList<String> getProductColors() throws SQLException {
-        final ResultSet result = connection.createStatement().executeQuery(
-                "SELECT DISTINCT color FROM project.producto ORDER BY color"
-        );
+        final String sql = "SELECT DISTINCT color FROM project.producto ORDER BY color";
+        logQuery(sql);
+        final ResultSet result = connection.createStatement().executeQuery(sql);
 
         final ArrayList<String> colors = new ArrayList<>();
 
@@ -364,6 +392,7 @@ public class DatabaseConnection implements AutoCloseable {
             query.setArray(regionsArgPosition, this.connection.createArrayOf("INT", regions.toArray()));
         }
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         final ArrayList<JSONObject> products = new ArrayList<>();
@@ -411,6 +440,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, rut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         final ArrayList<JSONObject> products = new ArrayList<>();
@@ -454,6 +484,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setLong(1, sku);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next() ? new JSONObject()
@@ -474,6 +505,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setLong(1, sku);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next();
@@ -494,6 +526,7 @@ public class DatabaseConnection implements AutoCloseable {
         query.setLong(1, sku);
         query.setString(2, rut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next();
@@ -511,6 +544,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setLong(1, sku);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         final ArrayList<JSONObject> stocks = new ArrayList<>();
@@ -536,13 +570,14 @@ public class DatabaseConnection implements AutoCloseable {
         query.setLong(1, sku);
         query.setString(2, cashierRut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next() ? result.getInt("stock") : -1;
     }
 
     public ArrayList<JSONObject> getStores() throws SQLException {
-        final ResultSet result = this.connection.createStatement().executeQuery("""
+        final String sql = """
                 SELECT
                     S.id,
                     S.nombre AS name,
@@ -550,8 +585,9 @@ public class DatabaseConnection implements AutoCloseable {
                     S.direccion_numero AS addressNumber,
                     C.nombre AS commune
                     FROM project.sucursal AS S
-                    INNER JOIN project.comuna AS C ON C.id = S.id_comuna"""
-        );
+                    INNER JOIN project.comuna AS C ON C.id = S.id_comuna""";
+        logQuery(sql);
+        final ResultSet result = this.connection.createStatement().executeQuery(sql);
 
         final ArrayList<JSONObject> stores = new ArrayList<>();
 
@@ -583,6 +619,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setInt(1, id);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next()
@@ -606,6 +643,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, rut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next() ? new EmployeeCredentials(
@@ -625,6 +663,7 @@ public class DatabaseConnection implements AutoCloseable {
         query.setString(2, email);
         query.setInt(3, phone);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next();
@@ -637,6 +676,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, rut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next() ? new Client(
@@ -658,6 +698,7 @@ public class DatabaseConnection implements AutoCloseable {
         query.setString(2, client.email());
         query.setInt(3, client.phone());
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next();
@@ -669,6 +710,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, rut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next();
@@ -686,6 +728,7 @@ public class DatabaseConnection implements AutoCloseable {
         query.setString(6, client.email());
         query.setInt(7, client.phone());
 
+        logQuery(query.toString());
         query.executeUpdate();
     }
 
@@ -695,6 +738,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, rut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next();
@@ -723,6 +767,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, managerRut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         final ArrayList<Sale> sales = new ArrayList<>();
@@ -771,6 +816,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, cashierRut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         final ArrayList<Sale> sales = new ArrayList<>();
@@ -816,6 +862,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setLong(1, id);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         if (!result.next()) return null;
@@ -867,6 +914,7 @@ public class DatabaseConnection implements AutoCloseable {
 
         query.setString(productsAmount * 2 + 3, sale.type().toString());
 
+        logQuery(query.toString());
         boolean hasResultSet = query.execute();
 
         while (!hasResultSet && query.getUpdateCount() != -1) {
@@ -886,6 +934,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, managerRut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next() ? result.getInt(1) : null;
@@ -908,6 +957,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, managerRut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         final ArrayList<Cashier> cashiers = new ArrayList<>();
@@ -948,6 +998,7 @@ public class DatabaseConnection implements AutoCloseable {
         );
         query.setString(1, cashierRut);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next() ? new Cashier(
@@ -981,6 +1032,7 @@ public class DatabaseConnection implements AutoCloseable {
         query.setString(10, cashier.salt());
         query.setInt(11, cashier.storeId());
 
+        logQuery(query.toString());
         query.executeUpdate();
     }
 
@@ -1052,6 +1104,7 @@ public class DatabaseConnection implements AutoCloseable {
             query.setArray(communesPosition, this.connection.createArrayOf("INT", communes.toArray()));
         }
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         final ArrayList<Supplier> suppliers = new ArrayList<>();
@@ -1103,6 +1156,7 @@ public class DatabaseConnection implements AutoCloseable {
         query.setString(2, email);
         query.setInt(3, phone);
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next() ? new Supplier(
@@ -1130,6 +1184,7 @@ public class DatabaseConnection implements AutoCloseable {
         query.setString(2, supplier.email());
         query.setInt(3, supplier.phone());
 
+        logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
         return result.next();
@@ -1163,6 +1218,7 @@ public class DatabaseConnection implements AutoCloseable {
             query.setInt(i * 2 + 12, brandId);
         }
 
+        logQuery(query.toString());
         query.executeUpdate();
     }
 
