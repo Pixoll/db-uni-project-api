@@ -60,6 +60,15 @@ public class DatabaseConnection implements AutoCloseable {
         return regions;
     }
 
+    public boolean doesCommuneExist(short id) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("SELECT 1 FROM project.comuna WHERE id = ?");
+        query.setShort(1, id);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
+    }
+
     public ArrayList<JSONObject> getProductSizes() throws SQLException {
         final ResultSet result = connection.createStatement().executeQuery("SELECT * FROM project.talla");
 
@@ -973,6 +982,126 @@ public class DatabaseConnection implements AutoCloseable {
         query.setInt(11, cashier.storeId());
 
         query.executeUpdate();
+    }
+
+    public ArrayList<Supplier> getSuppliers(
+            @Nonnull ArrayList<Integer> brands,
+            @Nonnull ArrayList<Integer> communes
+    ) throws SQLException {
+        final AtomicInteger argumentCounter = new AtomicInteger(1);
+        int brandsPosition = -1;
+        int communesPosition = -1;
+
+        String sql = """
+                -- noinspection SqlShouldBeInGroupBy
+                SELECT
+                    P.rut,
+                    P.nombre_primero AS firstName,
+                    P.nombre_segundo AS secondName,
+                    P.nombre_ap_paterno AS firstLastName,
+                    P.nombre_ap_materno AS secondLastName,
+                    P.email,
+                    P.telefono AS phone,
+                    P.direccion_calle AS addressStreet,
+                    P.direccion_numero AS addressNumber,
+                    C.nombre AS communeName,
+                    (SELECT json_agg(M2.nombre)
+                        FROM project.proveedordemarca AS PM2
+                        INNER JOIN project.marca AS M2 ON M2.id = PM2.id_marca
+                        WHERE PM2.rut_proveedor = P.rut
+                    ) AS brands
+                    FROM project.proveedor AS P
+                    INNER JOIN project.comuna AS C ON C.id = P.id_comuna
+                    INNER JOIN project.proveedordemarca AS PM ON PM.rut_proveedor = P.rut
+                    INNER JOIN project.marca AS M ON M.id = PM.id_marca
+                    WHERE 1 = 1""";
+
+        if (!brands.isEmpty()) {
+            sql += " AND M.id = ANY (?)";
+            brandsPosition = argumentCounter.getAndIncrement();
+        }
+        if (!communes.isEmpty()) {
+            sql += " AND C.id = ANY (?)";
+            communesPosition = argumentCounter.getAndIncrement();
+        }
+
+        final PreparedStatement query = this.connection.prepareStatement(sql + " GROUP BY P.rut, C.id");
+
+        if (brandsPosition != -1) {
+            query.setArray(brandsPosition, this.connection.createArrayOf("INT", brands.toArray()));
+        }
+        if (communesPosition != -1) {
+            query.setArray(communesPosition, this.connection.createArrayOf("INT", communes.toArray()));
+        }
+
+        final ResultSet result = query.executeQuery();
+
+        final ArrayList<Supplier> suppliers = new ArrayList<>();
+
+        while (result.next()) {
+            suppliers.add(new Supplier(
+                    result.getString("rut"),
+                    result.getString("firstName"),
+                    result.getString("secondName"),
+                    result.getString("firstLastName"),
+                    result.getString("secondLastName"),
+                    result.getString("email"),
+                    result.getInt("phone"),
+                    result.getString("addressStreet"),
+                    result.getShort("addressNumber"),
+                    (short) -1,
+                    result.getString("communeName"),
+                    new JSONArray(),
+                    new JSONArray(result.getString("brands"))
+            ));
+        }
+
+        return suppliers;
+    }
+
+    @Nullable
+    public Supplier getSupplier(@Nonnull String rut, @Nonnull String email, int phone) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT
+                    P.rut,
+                    P.nombre_primero AS firstName,
+                    P.nombre_segundo AS secondName,
+                    P.nombre_ap_paterno AS firstLastName,
+                    P.nombre_ap_materno AS secondLastName,
+                    P.email,
+                    P.telefono AS phone,
+                    P.direccion_calle AS addressStreet,
+                    P.direccion_numero AS addressNumber,
+                    C.nombre AS communeName,
+                    json_agg(M.nombre) AS brands
+                    FROM project.proveedor AS P
+                    INNER JOIN project.comuna AS C ON C.id = P.id_comuna
+                    INNER JOIN project.proveedordemarca AS PM ON PM.rut_proveedor = P.rut
+                    INNER JOIN project.marca AS M ON M.id = PM.id_marca
+                    WHERE P.rut = ? OR P.email = ? OR P.telefono = ?
+                    GROUP BY P.rut, C.id"""
+        );
+        query.setString(1, rut);
+        query.setString(2, email);
+        query.setInt(3, phone);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new Supplier(
+                result.getString("rut"),
+                result.getString("firstName"),
+                result.getString("secondName"),
+                result.getString("firstLastName"),
+                result.getString("secondLastName"),
+                result.getString("email"),
+                result.getInt("phone"),
+                result.getString("addressStreet"),
+                result.getShort("addressNumber"),
+                (short) -1,
+                result.getString("communeName"),
+                new JSONArray(),
+                new JSONArray(result.getString("brands"))
+        ) : null;
     }
 
     @Override

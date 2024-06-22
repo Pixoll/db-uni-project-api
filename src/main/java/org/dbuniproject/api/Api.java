@@ -34,7 +34,8 @@ public class Api {
                             new ProductsTypesEndpoint(),
                             new RegionsEndpoint(),
                             new SalesEndpoint(),
-                            new StoresEndpoint()
+                            new StoresEndpoint(),
+                            new SuppliersEndpoint()
                     ));
                     config.jsonMapper(new JSONMapper());
                 })
