@@ -1069,8 +1069,8 @@ public class DatabaseConnection implements AutoCloseable {
                     result.getShort("addressNumber"),
                     (short) -1,
                     result.getString("communeName"),
-                    new JSONArray(),
-                    new JSONArray(result.getString("brands"))
+                    new ArrayList<>(),
+                    Util.jsonArrayToList(new JSONArray(result.getString("brands")), String.class)
             ));
         }
 
@@ -1117,9 +1117,53 @@ public class DatabaseConnection implements AutoCloseable {
                 result.getShort("addressNumber"),
                 (short) -1,
                 result.getString("communeName"),
-                new JSONArray(),
-                new JSONArray(result.getString("brands"))
+                new ArrayList<>(),
+                Util.jsonArrayToList(new JSONArray(result.getString("brands")), String.class)
         ) : null;
+    }
+
+    public boolean doesSupplierExist(@Nonnull Supplier supplier) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "SELECT 1 FROM project.proveedor WHERE rut = ? OR email = ? OR telefono = ?"
+        );
+        query.setString(1, supplier.rut());
+        query.setString(2, supplier.email());
+        query.setInt(3, supplier.phone());
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
+    }
+
+    public void insertSupplier(@Nonnull Supplier supplier) throws SQLException {
+        final int brandsAmount = supplier.brandIds().size();
+        final String brands = "(?, ?),\n".repeat(brandsAmount)
+                .replaceFirst(",\n$", "");
+
+        final PreparedStatement query = this.connection.prepareStatement(
+                """
+                        INSERT INTO project.proveedor VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+                        INSERT INTO project.proveedordemarca VALUES\s""" + brands + ";"
+        );
+        query.setString(1, supplier.rut());
+        query.setString(2, supplier.firstName());
+        query.setString(3, supplier.secondName());
+        query.setString(4, supplier.firstLastName());
+        query.setString(5, supplier.secondLastName());
+        query.setString(6, supplier.email());
+        query.setInt(7, supplier.phone());
+        query.setString(8, supplier.addressStreet());
+        query.setShort(9, supplier.addressNumber());
+        query.setShort(10, supplier.communeId());
+
+        for (int i = 0; i < brandsAmount; i++) {
+            final int brandId = supplier.brandIds().get(i);
+            query.setString(i * 2 + 11, supplier.rut());
+            query.setInt(i * 2 + 12, brandId);
+        }
+
+        query.executeUpdate();
     }
 
     @Override

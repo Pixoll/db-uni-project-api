@@ -6,11 +6,13 @@ import org.dbuniproject.api.SessionTokenManager;
 import org.dbuniproject.api.Util;
 import org.dbuniproject.api.db.DatabaseConnection;
 import org.dbuniproject.api.db.structures.Supplier;
+import org.dbuniproject.api.db.structures.ValidationException;
+import org.json.JSONObject;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class SuppliersEndpoint extends Endpoint implements Endpoint.GetMethod {
+public class SuppliersEndpoint extends Endpoint implements Endpoint.GetMethod, Endpoint.PostMethod {
     public SuppliersEndpoint() {
         super("/suppliers");
     }
@@ -53,6 +55,37 @@ public class SuppliersEndpoint extends Endpoint implements Endpoint.GetMethod {
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
             ctx.status(HttpStatus.OK).json(db.getSuppliers(products, brands, communes));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void post(Context ctx) throws EndpointException {
+        final SessionTokenManager.Token sessionToken = getSessionToken(ctx);
+        if (sessionToken == null || !sessionToken.isManager()) {
+            throw new EndpointException(HttpStatus.UNAUTHORIZED, "Not a manager.");
+        }
+
+        final JSONObject body = ctx.bodyAsClass(JSONObject.class);
+        final Supplier supplier;
+
+        try {
+            supplier = new Supplier(body);
+        } catch (ValidationException e) {
+            throw new EndpointException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+
+        try (final DatabaseConnection db = new DatabaseConnection()) {
+            if (db.doesSupplierExist(supplier)) {
+                throw new EndpointException(
+                        HttpStatus.CONFLICT,
+                        "Supplier with that rut, email or phone already exists."
+                );
+            }
+
+            db.insertSupplier(supplier);
+            ctx.status(HttpStatus.CREATED);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

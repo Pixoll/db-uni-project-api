@@ -5,6 +5,7 @@ import io.javalin.http.Context;
 import jakarta.annotation.Nullable;
 import org.intellij.lang.annotations.Language;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -109,11 +110,14 @@ public class Util {
         return "#" + "0".repeat(6 - hex.length()) + hex;
     }
 
-    public static <T> ArrayList<T> jsonArrayToList(JSONArray jsonArray, Class<T> of) {
+    public static <T> ArrayList<T> jsonArrayToList(JSONArray jsonArray, Class<T> of) throws JSONException {
         final ArrayList<T> list = new ArrayList<>();
 
         for (int i = 0; i < jsonArray.length(); i++) {
             final Object obj = jsonArray.get(i);
+            if (obj == null) {
+                throw new JSONException("Invalid " + of.getSimpleName() + " at index " + i + " .");
+            }
 
             try {
                 list.add(of.cast(obj));
@@ -121,7 +125,7 @@ public class Util {
                 try {
                     list.add(of.getDeclaredConstructor(obj.getClass()).newInstance(obj));
                 } catch (Exception ex) {
-                    throw new RuntimeException(ex);
+                    throw new JSONException("Invalid " + of.getSimpleName() + " at index " + i + " .");
                 }
             }
         }

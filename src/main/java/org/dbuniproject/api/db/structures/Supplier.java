@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public record Supplier(
         @Nonnull String rut,
@@ -21,8 +22,8 @@ public record Supplier(
         short addressNumber,
         short communeId,
         @Nonnull String communeName,
-        @Nonnull JSONArray brandIds,
-        @Nonnull JSONArray brandNames
+        @Nonnull ArrayList<Integer> brandIds,
+        @Nonnull ArrayList<String> brandNames
 ) implements JSONEncodable, Validatable {
     public Supplier(JSONObject json) throws ValidationException {
         this(
@@ -37,8 +38,8 @@ public record Supplier(
                 (short) json.optInt("addressNumber", -1),
                 (short) json.optInt("communeId", -1),
                 "",
-                json.optJSONArray("brandIds", new JSONArray()),
-                new JSONArray()
+                Util.jsonArrayToList(json.optJSONArray("brandIds", new JSONArray()), Integer.class),
+                new ArrayList<>()
         );
 
         this.validate();
@@ -107,17 +108,21 @@ public record Supplier(
             throw new ValidationException("addressNumber", "Address number must be greater than 0.");
         }
 
+        if (this.communeId == -1) {
+            throw new ValidationException("communeId", "Commune id cannot be empty.");
+        }
+
+        if (this.brandIds.isEmpty()) {
+            throw new ValidationException("brandIds", "Brand ids cannot be empty.");
+        }
+
         try (final DatabaseConnection db = new DatabaseConnection()) {
             if (!db.doesCommuneExist(this.communeId)) {
                 throw new ValidationException("communeId", "Commune with id " + this.communeId + " does not exist.");
             }
 
-            for (int i = 0; i < this.brandIds.length(); i++) {
-                final Object brandIdObj = this.brandIds.get(i);
-                if (!(brandIdObj instanceof Integer brandId)) {
-                    throw new ValidationException("brandIds[" + i + "]", "Brand " + brandIdObj + " is not an integer.");
-                }
-
+            for (int i = 0; i < this.brandIds.size(); i++) {
+                final Integer brandId = this.brandIds.get(i);
                 if (db.getBrand(brandId) == null) {
                     throw new ValidationException("brandIds[" + i + "]", "Brand " + brandId + " does not exist.");
                 }
