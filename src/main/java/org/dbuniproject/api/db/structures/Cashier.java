@@ -69,7 +69,7 @@ public record Cashier(
         }
 
         if (this.secondName.isEmpty()) {
-            throw new ValidationException("secondName", "First name cannot be empty.");
+            throw new ValidationException("secondName", "Second name cannot be empty.");
         }
 
         if (this.firstLastName.isEmpty()) {
@@ -77,11 +77,15 @@ public record Cashier(
         }
 
         if (this.secondLastName.isEmpty()) {
-            throw new ValidationException("secondLastName", "First last name cannot be empty.");
+            throw new ValidationException("secondLastName", "Second last name cannot be empty.");
         }
 
         if (this.email.isEmpty()) {
             throw new ValidationException("email", "Email cannot be empty.");
+        }
+
+        if (!this.email.matches(Util.EMAIL_REGEX)) {
+            throw new ValidationException("email", "Invalid email address.");
         }
 
         if (this.phone == -1) {
@@ -90,10 +94,6 @@ public record Cashier(
 
         if (String.valueOf(this.phone).length() != 9) {
             throw new ValidationException("phone", "Invalid phone number.");
-        }
-
-        if (!this.email.matches(Util.EMAIL_REGEX)) {
-            throw new ValidationException("email", "Invalid email address.");
         }
     }
 }

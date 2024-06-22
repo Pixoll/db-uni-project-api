@@ -59,7 +59,7 @@ public record Client(
         }
 
         if (this.secondName.isEmpty()) {
-            throw new ValidationException("secondName", "First name cannot be empty.");
+            throw new ValidationException("secondName", "Second name cannot be empty.");
         }
 
         if (this.firstLastName.isEmpty()) {
@@ -67,7 +67,7 @@ public record Client(
         }
 
         if (this.secondLastName.isEmpty()) {
-            throw new ValidationException("secondLastName", "First last name cannot be empty.");
+            throw new ValidationException("secondLastName", "Second last name cannot be empty.");
         }
 
         if (this.email.isEmpty()) {
