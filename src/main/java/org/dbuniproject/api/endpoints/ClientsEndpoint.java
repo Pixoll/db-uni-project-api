@@ -54,7 +54,7 @@ public class ClientsEndpoint extends Endpoint implements Endpoint.GetMethod, End
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
             if (db.doesClientExist(client)) {
-                throw new EndpointException(HttpStatus.CONFLICT, "Client already exists.");
+                throw new EndpointException(HttpStatus.CONFLICT, "Client with that rut, email or phone already exists.");
             }
 
             db.insertClient(client);

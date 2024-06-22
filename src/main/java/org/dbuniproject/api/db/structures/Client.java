@@ -2,8 +2,11 @@ package org.dbuniproject.api.db.structures;
 
 import jakarta.annotation.Nonnull;
 import org.dbuniproject.api.Util;
+import org.dbuniproject.api.db.DatabaseConnection;
 import org.dbuniproject.api.json.JSONEncodable;
 import org.json.JSONObject;
+
+import java.sql.SQLException;
 
 public record Client(
         @Nonnull String rut,
@@ -72,7 +75,11 @@ public record Client(
         }
 
         if (!this.email.matches(Util.EMAIL_REGEX)) {
-            throw new ValidationException("email", "Invalid email.");
+            throw new ValidationException("email", "Invalid email address.");
+        }
+
+        if (this.phone == -1) {
+            throw new ValidationException("phone", "Phone number cannot be empty.");
         }
 
         if (String.valueOf(this.phone).length() != 9) {

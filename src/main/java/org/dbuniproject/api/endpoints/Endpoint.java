@@ -40,7 +40,8 @@ public abstract class Endpoint {
         }
     }
 
-    protected static @Nullable SessionTokenManager.Token getSessionToken(Context ctx) {
+    @Nullable
+    protected static SessionTokenManager.Token getSessionToken(Context ctx) {
         final String token = ctx.header(Header.AUTHORIZATION);
         return token != null ? SessionTokenManager.getSessionToken(token) : null;
     }
