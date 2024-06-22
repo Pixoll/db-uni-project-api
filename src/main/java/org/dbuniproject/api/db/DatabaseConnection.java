@@ -531,7 +531,7 @@ public class DatabaseConnection implements AutoCloseable {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean doesProductExist(long sku) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(
-                "SELECT 1 FROM project.producto WHERE sku = ?"
+                "SELECT 1 FROM project.producto WHERE sku = ? AND eliminado = FALSE"
         );
         query.setLong(1, sku);
 
