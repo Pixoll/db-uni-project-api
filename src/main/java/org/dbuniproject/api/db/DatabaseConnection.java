@@ -605,6 +605,22 @@ public class DatabaseConnection implements AutoCloseable {
         ) : null;
     }
 
+    public boolean doesEmployeeExist(@Nonnull String rut, @Nonnull String email, int phone) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT 1 FROM (
+                    SELECT rut, email, telefono FROM project.gerente
+                    UNION SELECT rut, email, telefono FROM project.vendedor
+                ) AS E WHERE E.rut = ? OR E.email = ? OR E.telefono = ?"""
+        );
+        query.setString(1, rut);
+        query.setString(2, email);
+        query.setInt(3, phone);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next();
+    }
+
     @Nullable
     public Client getClient(@Nonnull String rut) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(
@@ -852,6 +868,111 @@ public class DatabaseConnection implements AutoCloseable {
         result.next();
 
         return result.getLong(1);
+    }
+
+    @Nullable
+    public Integer getManagerStoreId(@Nonnull String managerRut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "SELECT id_sucursal FROM project.gerente WHERE rut = ?"
+        );
+        query.setString(1, managerRut);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? result.getInt(1) : null;
+    }
+
+    public ArrayList<Cashier> getCashiers(@Nonnull String managerRut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT
+                    V.rut,
+                    V.nombre_primero AS firstName,
+                    V.nombre_segundo AS secondName,
+                    V.nombre_ap_paterno AS firstLastName,
+                    V.nombre_ap_materno AS secondLastName,
+                    V.email,
+                    V.telefono AS phone,
+                    V.full_time AS fullTime
+                    FROM project.gerente AS G
+                    INNER JOIN project.vendedor AS V on V.id_sucursal = G.id_sucursal
+                    WHERE G.rut = ?"""
+        );
+        query.setString(1, managerRut);
+
+        final ResultSet result = query.executeQuery();
+
+        final ArrayList<Cashier> cashiers = new ArrayList<>();
+
+        while (result.next()) {
+            cashiers.add(new Cashier(
+                    result.getString("rut"),
+                    result.getString("firstName"),
+                    result.getString("secondName"),
+                    result.getString("firstLastName"),
+                    result.getString("secondLastName"),
+                    result.getString("email"),
+                    result.getInt("phone"),
+                    result.getBoolean("fullTime"),
+                    "",
+                    "",
+                    -1
+            ));
+        }
+
+        return cashiers;
+    }
+
+    @Nullable
+    public Cashier getCashier(@Nonnull String cashierRut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT
+                    rut,
+                    nombre_primero AS firstName,
+                    nombre_segundo AS secondName,
+                    nombre_ap_paterno AS firstLastName,
+                    nombre_ap_materno AS secondLastName,
+                    email,
+                    telefono AS phone,
+                    full_time AS fullTime
+                    FROM project.vendedor
+                    WHERE rut = ?"""
+        );
+        query.setString(1, cashierRut);
+
+        final ResultSet result = query.executeQuery();
+
+        return result.next() ? new Cashier(
+                result.getString("rut"),
+                result.getString("firstName"),
+                result.getString("secondName"),
+                result.getString("firstLastName"),
+                result.getString("secondLastName"),
+                result.getString("email"),
+                result.getInt("phone"),
+                result.getBoolean("fullTime"),
+                "",
+                "",
+                -1
+        ) : null;
+    }
+
+    public void insertCashier(@Nonnull Cashier cashier) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement(
+                "INSERT INTO project.vendedor VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        query.setString(1, cashier.rut());
+        query.setString(2, cashier.firstName());
+        query.setString(3, cashier.secondName());
+        query.setString(4, cashier.firstLastName());
+        query.setString(5, cashier.secondLastName());
+        query.setString(6, cashier.email());
+        query.setInt(7, cashier.phone());
+        query.setBoolean(8, cashier.fullTime());
+        query.setString(9, cashier.password());
+        query.setString(10, cashier.salt());
+        query.setInt(11, cashier.storeId());
+
+        query.executeUpdate();
     }
 
     @Override

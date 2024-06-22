@@ -69,6 +69,17 @@ public class Util {
         return null;
     }
 
+    public static String generatePassword() {
+        byte[] bytes = new byte[32];
+        new SecureRandom().nextBytes(bytes);
+        StringBuilder password = new StringBuilder();
+        for (byte b : bytes) {
+            char c = (char) (((char) (b) % 93) + 33);
+            password.append(c == '\\' ? '?' : c);
+        }
+        return password.toString();
+    }
+
     public static String generateSalt() {
         byte[] randomBytes = new byte[16];
         new SecureRandom().nextBytes(randomBytes);
@@ -81,6 +92,7 @@ public class Util {
                 .toString();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isValidRut(String rut) {
         if (!rut.matches("^\\d{7,}-[\\dkK]$")) return false;
 
