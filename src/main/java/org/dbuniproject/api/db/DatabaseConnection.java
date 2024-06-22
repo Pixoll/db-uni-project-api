@@ -545,8 +545,10 @@ public class DatabaseConnection implements AutoCloseable {
         final PreparedStatement query = this.connection.prepareStatement("""
                 INSERT INTO project.producto (nombre, descripcion, color, precio_sin_iva, id_tipo, id_talla, id_marca)
                     VALUES (?, ?, ?, ?, ?, ?, ?);
-                SELECT last_value FROM project.producto_sku_seq;"""
+                INSERT INTO project.stock VALUES (?, project.sku_ultimo_producto(), ?, ?, 0, 0);
+                SELECT project.sku_ultimo_producto();"""
         );
+
         query.setString(1, product.name());
         query.setString(2, product.description());
         query.setInt(3, product.color());
@@ -554,6 +556,10 @@ public class DatabaseConnection implements AutoCloseable {
         query.setInt(5, product.typeId());
         query.setInt(6, product.sizeId());
         query.setInt(7, product.brandId());
+
+        query.setInt(8, product.storeId());
+        query.setInt(9, product.minStock());
+        query.setInt(10, product.maxStock());
 
         logQuery(query.toString());
         boolean hasResultSet = query.execute();

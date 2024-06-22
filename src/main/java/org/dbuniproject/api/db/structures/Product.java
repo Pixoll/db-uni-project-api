@@ -13,7 +13,10 @@ public record Product(
         int priceWithoutTax,
         int typeId,
         int sizeId,
-        int brandId
+        int brandId,
+        int minStock,
+        int maxStock,
+        int storeId
 ) implements Validatable {
     public Product(JSONObject json) throws ValidationException {
         this(
@@ -23,7 +26,10 @@ public record Product(
                 json.optInt("priceWithoutTax", -1),
                 json.optInt("typeId", -1),
                 json.optInt("sizeId", -1),
-                json.optInt("brandId", -1)
+                json.optInt("brandId", -1),
+                json.optInt("minStock", -1),
+                json.optInt("maxStock", -1),
+                json.optInt("storeId", -1)
         );
 
         this.validate();
@@ -65,6 +71,30 @@ public record Product(
 
         if (this.brandId == -1) {
             throw new ValidationException("brandId", "Brand id cannot be empty.");
+        }
+
+        if (this.minStock == -1) {
+            throw new ValidationException("minStock", "Min stock cannot be empty.");
+        }
+
+        if (this.minStock <= 0) {
+            throw new ValidationException("minStock", "Min stock must be greater than zero.");
+        }
+
+        if (this.maxStock == -1) {
+            throw new ValidationException("maxStock", "Max stock cannot be empty.");
+        }
+
+        if (this.maxStock <= 0) {
+            throw new ValidationException("maxStock", "Max stock must be greater than zero.");
+        }
+
+        if (this.maxStock <= this.minStock) {
+            throw new ValidationException("maxStock", "Max stock must be greater than minimum stock.");
+        }
+
+        if (this.storeId == -1) {
+            throw new RuntimeException("Missing store id.");
         }
 
         try (final DatabaseConnection db = new DatabaseConnection()) {

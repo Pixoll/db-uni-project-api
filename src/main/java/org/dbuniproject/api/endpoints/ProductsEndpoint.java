@@ -92,15 +92,22 @@ public class ProductsEndpoint extends Endpoint implements Endpoint.GetMethod, En
         }
 
         final JSONObject body = ctx.bodyAsClass(JSONObject.class);
-        final Product product;
-
-        try {
-            product = new Product(body);
-        } catch (ValidationException e) {
-            throw new EndpointException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
+            final Integer storeId = db.getManagerStoreId(sessionToken.rut());
+            if (storeId == null) {
+                throw new RuntimeException("Could not resolve store id from manager " + sessionToken.rut() + ".");
+            }
+
+            body.put("storeId", storeId);
+            final Product product;
+
+            try {
+                product = new Product(body);
+            } catch (ValidationException e) {
+                throw new EndpointException(HttpStatus.BAD_REQUEST, e.getMessage());
+            }
+
             final long sku = db.insertProduct(product);
             ctx.status(HttpStatus.CREATED).json(new JSONObject()
                     .put("sku", sku)
