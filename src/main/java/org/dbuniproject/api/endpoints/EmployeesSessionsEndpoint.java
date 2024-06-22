@@ -35,11 +35,11 @@ public class EmployeesSessionsEndpoint extends Endpoint implements Endpoint.Post
         }
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
-            final EmployeeCredentials credentials = db.getEmployeeCredentials(rut, type);
+            final EmployeeCredentials credentials = db.getEmployeeCredentials(rut);
             if (credentials == null) {
                 throw new EndpointException(
                         HttpStatus.NOT_FOUND,
-                        "No credentials found for " + type + " with rut " + rut + "."
+                        "No credentials found for employee with rut " + rut + "."
                 );
             }
 

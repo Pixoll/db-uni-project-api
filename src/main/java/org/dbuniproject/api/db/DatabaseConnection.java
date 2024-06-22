@@ -729,13 +729,15 @@ public class DatabaseConnection implements AutoCloseable {
     }
 
     @Nullable
-    public EmployeeCredentials getEmployeeCredentials(
-            @Nonnull String rut,
-            @Nonnull SessionTokenManager.Token.Type type
-    ) throws SQLException {
-        final PreparedStatement query = this.connection.prepareStatement(type == SessionTokenManager.Token.Type.CASHIER
-                ? "SELECT contraseña AS password, salt FROM project.vendedor WHERE rut = ?"
-                : "SELECT contraseña AS password, salt FROM project.gerente WHERE rut = ?"
+    public EmployeeCredentials getEmployeeCredentials(@Nonnull String rut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+            SELECT
+                contraseña AS password,
+                salt
+                FROM (SELECT rut, contraseña, salt FROM project.gerente
+                    UNION SELECT rut, contraseña, salt FROM project.vendedor WHERE despedido = FALSE
+                ) AS E
+                WHERE E.rut = ?"""
         );
         query.setString(1, rut);
 
