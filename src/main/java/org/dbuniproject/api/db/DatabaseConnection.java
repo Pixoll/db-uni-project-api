@@ -985,50 +985,68 @@ public class DatabaseConnection implements AutoCloseable {
     }
 
     public ArrayList<Supplier> getSuppliers(
+            @Nonnull ArrayList<Integer> products,
             @Nonnull ArrayList<Integer> brands,
             @Nonnull ArrayList<Integer> communes
     ) throws SQLException {
         final AtomicInteger argumentCounter = new AtomicInteger(1);
+        int productsPosition = -1;
         int brandsPosition = -1;
         int communesPosition = -1;
 
         String sql = """
                 -- noinspection SqlShouldBeInGroupBy
                 SELECT
-                    P.rut,
-                    P.nombre_primero AS firstName,
-                    P.nombre_segundo AS secondName,
-                    P.nombre_ap_paterno AS firstLastName,
-                    P.nombre_ap_materno AS secondLastName,
-                    P.email,
-                    P.telefono AS phone,
-                    P.direccion_calle AS addressStreet,
-                    P.direccion_numero AS addressNumber,
+                    S.rut,
+                    S.nombre_primero AS firstName,
+                    S.nombre_segundo AS secondName,
+                    S.nombre_ap_paterno AS firstLastName,
+                    S.nombre_ap_materno AS secondLastName,
+                    S.email,
+                    S.telefono AS phone,
+                    S.direccion_calle AS addressStreet,
+                    S.direccion_numero AS addressNumber,
                     C.nombre AS communeName,
                     (SELECT json_agg(M2.nombre)
                         FROM project.proveedordemarca AS PM2
                         INNER JOIN project.marca AS M2 ON M2.id = PM2.id_marca
-                        WHERE PM2.rut_proveedor = P.rut
+                        WHERE PM2.rut_proveedor = S.rut
                     ) AS brands
-                    FROM project.proveedor AS P
-                    INNER JOIN project.comuna AS C ON C.id = P.id_comuna
-                    INNER JOIN project.proveedordemarca AS PM ON PM.rut_proveedor = P.rut
-                    INNER JOIN project.marca AS M ON M.id = PM.id_marca
-                    WHERE 1 = 1""";
+                    FROM project.proveedor AS S
+                    INNER JOIN project.comuna AS C ON C.id = S.id_comuna
+                    INNER JOIN project.proveedordemarca AS PM ON PM.rut_proveedor = S.rut""";
+
+        if (!brands.isEmpty() || !products.isEmpty()) {
+            sql += " INNER JOIN project.marca AS M ON M.id = PM.id_marca";
+        }
+        if (!products.isEmpty()) {
+            sql += " INNER JOIN project.producto AS P ON P.id_marca = M.id";
+        }
+
+        sql += " WHERE 1 = 1";
 
         if (!brands.isEmpty()) {
             sql += " AND M.id = ANY (?)";
             brandsPosition = argumentCounter.getAndIncrement();
+        }
+        if (!products.isEmpty()) {
+            sql += " AND P.sku = ANY (?)";
+            productsPosition = argumentCounter.getAndIncrement();
         }
         if (!communes.isEmpty()) {
             sql += " AND C.id = ANY (?)";
             communesPosition = argumentCounter.getAndIncrement();
         }
 
-        final PreparedStatement query = this.connection.prepareStatement(sql + " GROUP BY P.rut, C.id");
+        final PreparedStatement query = this.connection.prepareStatement(
+                sql + " GROUP BY S.rut, C.id ORDER BY S.rut"
+        );
 
         if (brandsPosition != -1) {
             query.setArray(brandsPosition, this.connection.createArrayOf("INT", brands.toArray()));
+        }
+        if (productsPosition != -1) {
+            query.setArray(productsPosition, this.connection.createArrayOf("INT", products.toArray()));
         }
         if (communesPosition != -1) {
             query.setArray(communesPosition, this.connection.createArrayOf("INT", communes.toArray()));

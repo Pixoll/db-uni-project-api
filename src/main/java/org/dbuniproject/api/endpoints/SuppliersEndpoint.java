@@ -47,11 +47,12 @@ public class SuppliersEndpoint extends Endpoint implements Endpoint.GetMethod {
             }
         }
 
+        final ArrayList<Integer> products = Util.getQueryParamAsIntegerList(ctx, "product");
         final ArrayList<Integer> brands = Util.getQueryParamAsIntegerList(ctx, "brand");
         final ArrayList<Integer> communes = Util.getQueryParamAsIntegerList(ctx, "commune");
 
         try (final DatabaseConnection db = new DatabaseConnection()) {
-            ctx.status(HttpStatus.OK).json(db.getSuppliers(brands, communes));
+            ctx.status(HttpStatus.OK).json(db.getSuppliers(products, brands, communes));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
