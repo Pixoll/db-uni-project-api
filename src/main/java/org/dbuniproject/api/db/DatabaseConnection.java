@@ -623,20 +623,53 @@ public class DatabaseConnection implements AutoCloseable {
         return stocks;
     }
 
-    public int getProductStock(long sku, @Nonnull String cashierRut) throws SQLException {
+    @Nullable
+    public ProductStock getProductStock(long sku, @Nonnull String employeeRut) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement("""
-                SELECT ST.actual + ST.bodega AS stock
-                    FROM project.vendedor AS V
-                    INNER JOIN project.stock AS ST on ST.id_sucursal = V.id_sucursal
-                    WHERE ST.sku_producto = ? AND V.rut = ?"""
+                SELECT
+                    ST.sku_producto AS productSku,
+                    ST.id_sucursal AS storeId,
+                    ST.min,
+                    ST.max,
+                    ST.actual AS forSale,
+                    ST.bodega AS inStorage
+                    FROM (SELECT rut, id_sucursal FROM project.vendedor
+                        UNION SELECT rut, id_sucursal FROM project.gerente
+                    ) AS E
+                    INNER JOIN project.stock AS ST on ST.id_sucursal = E.id_sucursal
+                    WHERE ST.sku_producto = ? AND E.rut = ?"""
         );
         query.setLong(1, sku);
-        query.setString(2, cashierRut);
+        query.setString(2, employeeRut);
 
         logQuery(query.toString());
         final ResultSet result = query.executeQuery();
 
-        return result.next() ? result.getInt("stock") : -1;
+        return result.next() ? new ProductStock(
+                result.getLong("productSku"),
+                result.getInt("storeId"),
+                result.getInt("min"),
+                result.getInt("max"),
+                result.getInt("forSale"),
+                result.getInt("inStorage")
+        ) : null;
+    }
+
+    public void updateProductStock(@Nonnull ProductStock stock) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                UPDATE project.stock
+                    SET min = ?, max = ?, actual = ?, bodega = ?
+                    WHERE sku_producto = ? AND id_sucursal = ?;"""
+        );
+        query.setInt(1, stock.min);
+        query.setInt(2, stock.max);
+        query.setInt(3, stock.forSale);
+        query.setInt(4, stock.inStorage);
+        query.setLong(5, stock.productSku);
+        query.setInt(6, stock.storeId);
+
+        logQuery(query.toString());
+        query.executeUpdate();
     }
 
     public ArrayList<JSONObject> getStores() throws SQLException {

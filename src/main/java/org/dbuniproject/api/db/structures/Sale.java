@@ -92,7 +92,9 @@ public record Sale(
                     );
                 }
 
-                final int currentStock = db.getProductStock(productSale.sku(), this.cashierRut);
+                final ProductStock stock = db.getProductStock(productSale.sku(), this.cashierRut);
+                final int currentStock = stock != null ? stock.forSale + stock.inStorage : -1;
+
                 if (currentStock == -1) {
                     // Shouldn't happen, just in case
                     throw new ValidationException(
