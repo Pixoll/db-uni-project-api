@@ -1135,6 +1135,38 @@ public class DatabaseConnection implements AutoCloseable {
         ) : null;
     }
 
+    public JSONArray getCashierSalaryHistory(@Nonnull String cashierRut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT
+                    CAST(DATE_PART('year', S.fecha) AS INT) AS year,
+                    CAST(DATE_PART('month', S.fecha) AS INT) AS month,
+                    CAST(TRUNC(SUM(C.total) * (SELECT porcentaje_comision FROM project.Parametros)) AS INT)
+                        + (SELECT (CASE WHEN V.full_time THEN sueldo_base_full_time ELSE sueldo_base_part_time END
+                    ) FROM project.Parametros) AS salary
+                    FROM project.vendedor AS V
+                    INNER JOIN project.Venta AS S ON S.rut_vendedor = V.rut
+                    INNER JOIN project.Comprobante AS C ON C.id = S.id
+                    WHERE V.rut = ?
+                    GROUP BY V.rut, year, month;"""
+        );
+        query.setString(1, cashierRut);
+
+        logQuery(query.toString());
+        final ResultSet result = query.executeQuery();
+
+        final JSONArray salaryHistory = new JSONArray();
+
+        while (result.next()) {
+            salaryHistory.put(new JSONObject()
+                    .put("year", result.getInt("year"))
+                    .put("month", result.getInt("month"))
+                    .put("salary", result.getInt("salary"))
+            );
+        }
+
+        return salaryHistory;
+    }
+
     public void insertCashier(@Nonnull Cashier cashier) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(
                 "INSERT INTO project.vendedor VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
