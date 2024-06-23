@@ -91,6 +91,7 @@ public class EmployeesEndpoint
         }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void delete(Context ctx) throws EndpointException {
         final SessionTokenManager.Token sessionToken = getSessionToken(ctx);

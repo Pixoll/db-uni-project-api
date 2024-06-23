@@ -12,6 +12,7 @@ public class EmployeesSalariesEndpoint extends Endpoint implements Endpoint.GetM
         super("/employees/salaries");
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void get(Context ctx) throws EndpointException {
         final SessionTokenManager.Token sessionToken = getSessionToken(ctx);

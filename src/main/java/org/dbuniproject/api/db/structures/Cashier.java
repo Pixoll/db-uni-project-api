@@ -54,6 +54,7 @@ public record Cashier(
                 .put("fullTime", this.fullTime);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void validate(@Nonnull String parentName) throws ValidationException {
         if (this.rut.isEmpty()) {

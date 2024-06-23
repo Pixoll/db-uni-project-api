@@ -97,6 +97,7 @@ public class SessionTokenManager {
             return this.type == Type.CASHIER;
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean isManager() {
             return this.type == Type.MANAGER;
         }

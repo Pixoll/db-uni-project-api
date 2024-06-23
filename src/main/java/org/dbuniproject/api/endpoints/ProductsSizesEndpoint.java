@@ -46,6 +46,7 @@ public class ProductsSizesEndpoint extends Endpoint implements Endpoint.GetMetho
         }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void post(Context ctx) throws EndpointException {
         final SessionTokenManager.Token sessionToken = getSessionToken(ctx);

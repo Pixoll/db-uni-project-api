@@ -55,6 +55,7 @@ public abstract class Endpoint {
     }
 
     public interface PutMethod {
+        @SuppressWarnings("RedundantThrows")
         void put(Context ctx) throws EndpointException;
     }
 

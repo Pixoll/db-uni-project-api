@@ -46,6 +46,7 @@ public class ProductsBrandsEndpoint extends Endpoint implements Endpoint.GetMeth
         }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void post(Context ctx) throws EndpointException {
         final SessionTokenManager.Token sessionToken = getSessionToken(ctx);

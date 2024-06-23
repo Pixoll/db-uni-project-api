@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings("DuplicatedCode")
 public class DatabaseConnection implements AutoCloseable {
     private static final String POSTGRES_DB_URL = Api.DOTENV.get("POSTGRES_DB_URL");
     private final Connection connection;
@@ -540,6 +541,7 @@ public class DatabaseConnection implements AutoCloseable {
         return result.next();
     }
 
+    @SuppressWarnings("JpaQueryApiInspection")
     public long insertProduct(@Nonnull Product product) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement("""
                 INSERT INTO project.producto (nombre, descripcion, color, precio_sin_iva, id_tipo, id_talla, id_marca)
@@ -851,6 +853,7 @@ public class DatabaseConnection implements AutoCloseable {
         query.executeUpdate();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean doesCashierExist(@Nonnull String rut) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(
                 "SELECT 1 FROM project.vendedor WHERE rut = ?"

@@ -2,11 +2,8 @@ package org.dbuniproject.api.db.structures;
 
 import jakarta.annotation.Nonnull;
 import org.dbuniproject.api.Util;
-import org.dbuniproject.api.db.DatabaseConnection;
 import org.dbuniproject.api.json.JSONEncodable;
 import org.json.JSONObject;
-
-import java.sql.SQLException;
 
 public record Client(
         @Nonnull String rut,
@@ -44,6 +41,7 @@ public record Client(
                 .put("phone", this.phone);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void validate(@Nonnull String parentName) throws ValidationException {
         if (this.rut.isEmpty()) {

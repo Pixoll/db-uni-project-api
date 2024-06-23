@@ -12,7 +12,7 @@ public class ProductsColorsEndpoint extends Endpoint implements Endpoint.GetMeth
     }
 
     @Override
-    public void get(Context ctx) throws EndpointException {
+    public void get(Context ctx) {
         try (final DatabaseConnection db = new DatabaseConnection()) {
             ctx.status(HttpStatus.OK).json(db.getProductColors());
         } catch (SQLException e) {

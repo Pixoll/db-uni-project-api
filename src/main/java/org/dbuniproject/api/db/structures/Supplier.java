@@ -62,6 +62,7 @@ public record Supplier(
                 .put("brands", this.brandNames);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void validate(@Nonnull String parentName) throws ValidationException {
         if (this.rut.isEmpty()) {

@@ -14,6 +14,7 @@ public class EmployeesContractsEndpoint extends Endpoint implements Endpoint.Pat
         super("/employees/contracts");
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void patch(Context ctx) throws EndpointException {
         final SessionTokenManager.Token sessionToken = getSessionToken(ctx);
