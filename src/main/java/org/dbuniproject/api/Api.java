@@ -36,6 +36,7 @@ public class Api {
                             new ProductsTypesEndpoint(),
                             new RegionsEndpoint(),
                             new SalesEndpoint(),
+                            new SalesTaxEndpoint(),
                             new StoresEndpoint(),
                             new SuppliersEndpoint()
                     ));

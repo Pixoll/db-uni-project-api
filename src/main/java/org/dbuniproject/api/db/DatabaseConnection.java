@@ -1049,6 +1049,14 @@ public class DatabaseConnection implements AutoCloseable {
         return result.getLong(1);
     }
 
+    public float getSalesTax() throws SQLException {
+        final ResultSet result = this.connection.createStatement().executeQuery(
+                " SELECT iva FROM project.parametros"
+        );
+
+        return result.getFloat(1);
+    }
+
     @Nullable
     public Integer getManagerStoreId(@Nonnull String managerRut) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(
