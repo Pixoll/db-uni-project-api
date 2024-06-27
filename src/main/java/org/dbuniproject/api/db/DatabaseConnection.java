@@ -1147,8 +1147,11 @@ public class DatabaseConnection implements AutoCloseable {
     }
 
     public void insertCashier(@Nonnull Cashier cashier) throws SQLException {
-        final PreparedStatement query = this.connection.prepareStatement(
-                "INSERT INTO project.vendedor VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        final PreparedStatement query = this.connection.prepareStatement("""
+                INSERT INTO project.vendedor (
+                              rut, nombre_primero, nombre_segundo, nombre_ap_paterno, nombre_ap_materno,
+                              email, telefono, full_time, contraseña, salt, id_sucursal)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
         );
         query.setString(1, cashier.rut());
         query.setString(2, cashier.firstName());
