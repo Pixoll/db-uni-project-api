@@ -341,61 +341,61 @@ public class DatabaseConnection implements AutoCloseable {
                     INNER JOIN project.Marca AS M ON M.id = P.id_marca""";
 
         if (!communes.isEmpty() || !regions.isEmpty()) {
-            sql += " INNER JOIN project.Sucursal AS SU ON SU.id = ST.id_sucursal";
-            sql += " INNER JOIN project.Comuna as C ON C.id = SU.id_comuna";
+            sql += "\n    INNER JOIN project.Sucursal AS SU ON SU.id = ST.id_sucursal";
+            sql += "\n    INNER JOIN project.Comuna as C ON C.id = SU.id_comuna";
         }
 
         if (!regions.isEmpty()) {
-            sql += " INNER JOIN project.Region as R ON R.numero = C.region";
+            sql += "\n    INNER JOIN project.Region as R ON R.numero = C.region";
         }
 
-        sql += " WHERE P.eliminado = FALSE";
+        sql += "\n    WHERE P.eliminado = FALSE";
 
         if (name != null && !name.isEmpty()) {
-            sql += " AND P.nombre ILIKE '%' || ? || '%'";
+            sql += "\n    AND P.nombre ILIKE '%' || ? || '%'";
             nameArgPosition = argumentCounter.getAndIncrement();
         }
         if (minPrice != null) {
-            sql += " AND project.aplicar_iva(P.precio_sin_iva) >= ?";
+            sql += "\n    AND project.aplicar_iva(P.precio_sin_iva) >= ?";
             minPriceArgPosition = argumentCounter.getAndIncrement();
         }
         if (maxPrice != null) {
-            sql += " AND project.aplicar_iva(P.precio_sin_iva) <= ?";
+            sql += "\n    AND project.aplicar_iva(P.precio_sin_iva) <= ?";
             maxPriceArgPosition = argumentCounter.getAndIncrement();
         }
         if (!types.isEmpty()) {
-            sql += " AND P.id_tipo = ANY (?)";
+            sql += "\n    AND P.id_tipo = ANY (?)";
             typesArgPosition = argumentCounter.getAndIncrement();
         }
         if (!sizes.isEmpty()) {
-            sql += " AND P.id_talla = ANY (?)";
+            sql += "\n    AND P.id_talla = ANY (?)";
             sizesArgPosition = argumentCounter.getAndIncrement();
         }
         if (!brands.isEmpty()) {
-            sql += " AND P.id_marca = ANY (?)";
+            sql += "\n    AND P.id_marca = ANY (?)";
             brandsArgPosition = argumentCounter.getAndIncrement();
         }
         if (!colors.isEmpty()) {
-            sql += " AND P.color = ANY (?)";
+            sql += "\n    AND P.color = ANY (?)";
             colorsArgPosition = argumentCounter.getAndIncrement();
         }
         if (!communes.isEmpty()) {
-            sql += " AND C.id = ANY (?)";
+            sql += "\n    AND C.id = ANY (?)";
             communesArgPosition = argumentCounter.getAndIncrement();
         }
         if (!regions.isEmpty()) {
-            sql += " AND R.numero = ANY (?)";
+            sql += "\n    AND R.numero = ANY (?)";
             regionsArgPosition = argumentCounter.getAndIncrement();
         }
 
-        sql += " GROUP BY P.sku, P.nombre, M.nombre, P.color, P.precio_sin_iva";
+        sql += "\n    GROUP BY P.sku, P.nombre, M.nombre, P.color, P.precio_sin_iva";
 
         if (sortByNameAsc != null || sortByPriceAsc != null) {
             final ArrayList<String> sorts = new ArrayList<>();
             if (sortByPriceAsc != null) sorts.add("P.precio_sin_iva " + (sortByPriceAsc ? "ASC" : "DESC"));
             if (sortByNameAsc != null) sorts.add("P.nombre " + (sortByNameAsc ? "ASC" : "DESC"));
 
-            sql += " ORDER BY " + String.join(", ", sorts);
+            sql += "\n    ORDER BY " + String.join(", ", sorts);
         }
 
         final PreparedStatement query = connection.prepareStatement(sql);
@@ -1213,29 +1213,29 @@ public class DatabaseConnection implements AutoCloseable {
                     INNER JOIN project.proveedordemarca AS PM ON PM.rut_proveedor = S.rut""";
 
         if (!brands.isEmpty() || !products.isEmpty()) {
-            sql += " INNER JOIN project.marca AS M ON M.id = PM.id_marca";
+            sql += "\n    INNER JOIN project.marca AS M ON M.id = PM.id_marca";
         }
         if (!products.isEmpty()) {
-            sql += " INNER JOIN project.producto AS P ON P.id_marca = M.id";
+            sql += "\n    INNER JOIN project.producto AS P ON P.id_marca = M.id";
         }
 
-        sql += " WHERE 1 = 1";
+        sql += "\n    WHERE 1 = 1";
 
         if (!brands.isEmpty()) {
-            sql += " AND M.id = ANY (?)";
+            sql += "\n    AND M.id = ANY (?)";
             brandsPosition = argumentCounter.getAndIncrement();
         }
         if (!products.isEmpty()) {
-            sql += " AND P.sku = ANY (?)";
+            sql += "\n    AND P.sku = ANY (?)";
             productsPosition = argumentCounter.getAndIncrement();
         }
         if (!communes.isEmpty()) {
-            sql += " AND C.id = ANY (?)";
+            sql += "\n    AND C.id = ANY (?)";
             communesPosition = argumentCounter.getAndIncrement();
         }
 
         final PreparedStatement query = this.connection.prepareStatement(
-                sql + " GROUP BY S.rut, C.id ORDER BY S.rut"
+                sql + "\n    GROUP BY S.rut, C.id ORDER BY S.rut"
         );
 
         if (brandsPosition != -1) {
