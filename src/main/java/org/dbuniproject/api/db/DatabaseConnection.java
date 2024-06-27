@@ -541,13 +541,9 @@ public class DatabaseConnection implements AutoCloseable {
         return result.next();
     }
 
-    @SuppressWarnings("JpaQueryApiInspection")
     public long insertProduct(@Nonnull Product product) throws SQLException {
-        final PreparedStatement query = this.connection.prepareStatement("""
-                INSERT INTO project.producto (nombre, descripcion, color, precio_sin_iva, id_tipo, id_talla, id_marca)
-                    VALUES (?, ?, ?, ?, ?, ?, ?);
-                INSERT INTO project.stock VALUES (?, project.sku_ultimo_producto(), ?, ?, 0, 0);
-                SELECT project.sku_ultimo_producto();"""
+        final PreparedStatement query = this.connection.prepareStatement(
+                "SELECT project.crear_producto(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
         );
 
         query.setString(1, product.name());
@@ -563,13 +559,7 @@ public class DatabaseConnection implements AutoCloseable {
         query.setInt(10, product.maxStock());
 
         logQuery(query.toString());
-        boolean hasResultSet = query.execute();
-
-        while (!hasResultSet && query.getUpdateCount() != -1) {
-            hasResultSet = query.getMoreResults();
-        }
-
-        final ResultSet result = query.getResultSet();
+        final ResultSet result = query.executeQuery();
         result.next();
 
         return result.getLong(1);
@@ -1008,42 +998,20 @@ public class DatabaseConnection implements AutoCloseable {
     }
 
     public long insertSale(@Nonnull Sale sale) throws SQLException {
-        final int productsAmount = sale.products().size();
-        final String products = "(project.id_ultima_venta(), ?, ?),\n".repeat(productsAmount)
-                .replaceFirst(",\n$", "");
-
         final PreparedStatement query = this.connection.prepareStatement(
-                """
-                        INSERT INTO project.Venta (fecha, rut_vendedor, rut_cliente) VALUES
-                            (CURRENT_TIMESTAMP, ?, ?);
-                        INSERT INTO project.VentaDeProducto VALUES
-                        """ + products + ";\n" + """
-                        INSERT INTO project.Comprobante VALUES (
-                            project.id_ultima_venta(),
-                            ?::project.tipo_comprobante,
-                            project.total_venta(project.id_ultima_venta())
-                        );
-                        SELECT project.id_ultima_venta();"""
+                "SELECT project.crear_venta(?, ?, ?::project.tipo_comprobante, ?);"
         );
         query.setString(1, sale.cashierRut());
         query.setString(2, sale.clientRut());
-
-        for (int i = 0; i < productsAmount; i++) {
-            final ProductSale productSale = sale.products().get(i);
-            query.setLong(i * 2 + 3, productSale.sku());
-            query.setInt(i * 2 + 4, productSale.quantity());
-        }
-
-        query.setString(productsAmount * 2 + 3, sale.type().toString());
+        query.setString(3, sale.type().toString());
+        query.setArray(4, this.connection.createArrayOf(
+                "project.producto_y_cantidad", sale.products().stream().map(product ->
+                        "(" + product.sku() + "," + product.quantity() + ")"
+                ).toArray())
+        );
 
         logQuery(query.toString());
-        boolean hasResultSet = query.execute();
-
-        while (!hasResultSet && query.getUpdateCount() != -1) {
-            hasResultSet = query.getMoreResults();
-        }
-
-        final ResultSet result = query.getResultSet();
+        final ResultSet result = query.executeQuery();
         result.next();
 
         return result.getLong(1);
