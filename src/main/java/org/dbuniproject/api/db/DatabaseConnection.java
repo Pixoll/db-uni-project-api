@@ -1027,6 +1027,37 @@ public class DatabaseConnection implements AutoCloseable {
     }
 
     @Nullable
+    public JSONObject getManager(@Nonnull String rut) throws SQLException {
+        final PreparedStatement query = this.connection.prepareStatement("""
+                SELECT
+                    rut,
+                    nombre_primero AS firstName,
+                    nombre_segundo AS secondName,
+                    nombre_ap_paterno AS firstLastName,
+                    nombre_ap_materno AS secondLastName,
+                    email,
+                    telefono AS phone
+                    FROM project.gerente
+                    WHERE rut = ?"""
+        );
+        query.setString(1, rut);
+
+        logQuery(query.toString());
+        final ResultSet result = query.executeQuery();
+
+        return result.next()
+                ? new JSONObject()
+                .put("rut", result.getString("rut"))
+                .put("firstName", result.getString("firstName"))
+                .put("secondName", result.getString("secondName"))
+                .put("firstLastName", result.getString("firstLastName"))
+                .put("secondLastName", result.getString("secondLastName"))
+                .put("email", result.getString("email"))
+                .put("phone", result.getString("phone"))
+                : null;
+    }
+
+    @Nullable
     public Integer getManagerStoreId(@Nonnull String managerRut) throws SQLException {
         final PreparedStatement query = this.connection.prepareStatement(
                 "SELECT id_sucursal FROM project.gerente WHERE rut = ?"
