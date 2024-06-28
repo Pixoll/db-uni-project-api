@@ -466,7 +466,8 @@ public class DatabaseConnection implements AutoCloseable {
                         SELECT rut, id_sucursal FROM project.gerente
                         UNION SELECT rut, id_sucursal FROM project.vendedor
                     ) AS E ON SU.id = E.id_sucursal
-                    WHERE P.eliminado = FALSE AND E.rut = ?"""
+                    WHERE P.eliminado = FALSE AND E.rut = ?
+                    ORDER BY P.nombre, P.precio_sin_iva DESC"""
         );
         query.setString(1, rut);
 
